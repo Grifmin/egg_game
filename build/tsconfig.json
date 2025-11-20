@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "outDir": "../dist_playground",
+    "typeRoots": ["./@types", "../@types"]
+  },
+  "include": ["**/*.ts", "**/*.js", "@types/**/*.d.ts"],
+  "exclude": []   // overrides the root exclude
+}

@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		// "moduleResolution": "node",
+		"moduleResolution": "bundler",
+		"lib": ["DOM", "es2024"],
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
+		"allowJs": true, // allow for js (as im sure someone will want to use js, and i use it in my playground / demos)
+		"skipLibCheck": true, // dont check my @types/*
+		"strict": true,
+		"sourceMap": true,
+		"declaration": false,
+		"outDir": "dist",
+		"typeRoots": ["./@types"]
+	},
+	"include": ["@types/**/*.d.ts", "src","@types/eggGame/**/*.d.ts"],
+	"exclude": ["playground", "build", "references"]
+}

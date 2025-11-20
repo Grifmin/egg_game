@@ -1,0 +1,60 @@
+<div v-if="shouldDisplay" class="modmenu-screen">
+	<div class="sidebar modmenu-page-content roundme_sm ss_marginright bg_blue6 common-box-shadow">
+		<div class="modmenu-header bg_blue3">
+			<header class="f_row align-items-center modmenu-title">
+				<section>
+					<h1 class="text-shadow-black-40 text_white nospace">Mods</h1>
+				</section>
+			</header>
+			<aside class="'justify-self-end text-right">{{ mods.length }} mods</aside>
+			<input v-model="search" placeholder="Search Mods..." class="mod-menusearch ss_field" />
+		</div>
+		<div class="mod-screen-content">
+			<div  class="mod-list">
+				<div class="mod-item" v-for="(mod, i) in filteredMods" :key="i" @click="selectMod(mod)">
+					<div class="mod-icon"
+						:style="{ backgroundImage: mod.iconUrl ? mod.iconUrl : backupURL, backgroundSize: 'cover' }"
+						aria-hidden="true"
+					></div>
+					<div class="mod-info">
+						<div class="name">{{ mod.name }}</div>
+						<div class="author">{{ mod.author }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="mod-details" v-if="selectedMod">
+				<div class="mod-meta">
+					<header class="mod-select-header">
+						<div class="mod-icon" 
+							:style="{ backgroundImage: selectedMod.iconUrl ? selectedMod.iconUrl : backupURL , backgroundSize: 'cover' }"
+							aria-hidden="true"
+						></div>
+						<div>
+							<h3> {{ selectedMod.name }}</h3>
+							<p>
+								<span class="author-text">Author: </span>
+								<span class="author">{{selectedMod.author}}</span>
+							</p>
+							<p v-if="selectedMod.version">Version: {{ selectedMod.version}}</p>
+						</div>
+						<aside>
+							<button class="mod-config-button ss_button" @click="configurationSelected()" > {{ configButtonText }} </button>
+						</aside>
+					</header>
+				</div>
+				<p v-if="desciptionScreen" class="mod-desc">{{ selectedMod.description }}</p>
+				<div v-if="!desciptionScreen" class="mod-config">
+					<div v-for="(option, idx) in selectedMod.config()" :key="idx">
+						<label>
+							{{option.label ?? "Default Option(s)"}}
+							<input type="checkbox" v-if="option.type == 'Toggle'" v-model="option.value" @change="onOptionsChange(option, idx)">
+							<input type="range" v-if="option.type == 'Slider'" v-model.number="option.value" :min="option.min" :max="option.max" @change="onOptionsChange(option, idx)">
+							<!-- <input type="text" v-if="option.type == 'Input'" ...> -->
+							<!-- todo: implement input box + add in slider increment -->
+						</label>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

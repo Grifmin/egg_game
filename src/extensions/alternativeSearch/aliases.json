@@ -1,0 +1,14 @@
+{
+	"aliases": {
+		"star wars": {
+			"tags": ["Eggwalker", "Eggwalker2"],
+			"negate": [1127, 1135, 1319]
+		},
+		"mario": {
+			"tags": ["Kart"]
+		},
+		"among us": {
+			"tags": ["AmongEgg"]
+		}
+	}
+}

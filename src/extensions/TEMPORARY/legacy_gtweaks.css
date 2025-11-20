@@ -1,0 +1,106 @@
+/* Ads / Junk they attempt to stuff down our throat */
+.house-ad-wrapper #respawn-ad-two #respawn-ad-two #welcome-bundle-ui .welcome-bundle-ui {
+	display: none !important;
+}
+img[src="img/eggstra-value-pack.webp"] {
+	/* fuck off */
+	display: none !important;
+}
+/* vip club annoyances */
+.free-games-logo .vip-club-cta .free-games-title #chickenBadge {
+	display: none !important;
+}
+/* playerList stuff */
+.playerSlot--nam-score {
+	border-radius: 0.5em;
+}
+.is-paused .pause-ui-element {
+	left: 1em;
+}
+.is-paused .chat-item:first-child.chat-pinned-item {
+	background-color: transparent !important; /* for some reason i have to add this as it sets the background color on the pinned div to blue... */
+}
+
+.chat-container {
+	display: grid;
+	grid-template-rows: 1fr auto;
+	background-color: rgba(0, 0, 0, 0.15) !important;
+	border: 0.0625em solid rgba(0, 0, 0, 0.2) !important;
+	box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.2) !important;
+	border-radius: 0.9375em !important;
+	padding: 0.9375em !important;
+	scroll-behavior: smooth;
+	max-height: 12.25em;
+	/* ^ this allows for a (decent in my opinion) size window (for max size)*/
+}
+#chatOut {
+	overflow-y: auto;
+	scroll-behavior: smooth;
+	overflow: scroll;
+	mask-image: linear-gradient(
+		to bottom,
+		transparent 0%,
+		black 10%,
+		black 15%,
+		black 25%,
+		black 85%,
+		black 100%
+	);
+	hyphens: auto;
+	overflow-wrap: break-word;
+	/* mask-image: linear-gradient(to bottom, 
+        transparent 0%, 
+        transparent 10%, 
+        black 25%, 
+        black 75%, 
+        transparent 90%, 
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(to bottom, 
+        transparent 0%, 
+        transparent 10%, 
+        black 25%, 
+        black 75%, 
+        transparent 90%, 
+        transparent 100%
+    ); */
+}
+#chatIn {
+	position: sticky;
+	overflow-y: auto;
+	scroll-behavior: smooth;
+	bottom: 0;
+}
+.is-paused #chatIn {
+	width: 100%;
+	left: 1em;
+}
+
+.is-paused .chat-container {
+	display: grid !important; /*stop changing when pausing please*/
+	margin-left: unset;
+	height: auto;
+}
+.is-paused #chatIn {
+	position: sticky;
+}
+/* this places the chat element back inside the div */
+/* Overwritting the defaults */
+.chat-wrapper .pause-ui-element {
+	bottom: var(--ss-space-lg) !important ;
+	background-color: transparent !important;
+	border: none !important;
+	width: 30% !important;
+	height: auto !important;
+}
+.is-paused .pause-ui-element {
+	bottom: var(--ss-space-lg);
+	background-color: transparent;
+	border: none;
+	width: 30%;
+	height: auto !important;
+}
+/*addChat fitled message color*/
+.addChatfiltered {
+	color: red;
+}

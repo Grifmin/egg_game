@@ -1,0 +1,6 @@
+/* this is just a safety precaution. it shouldnt ever be visible, but just incase im going to ensure it is */
+.firebaseID {
+	visibility: hidden !important;
+	display: none !important;
+	opacity: 0 !important; /* these 3 should be enough for it to never be accidentally revealed */
+}

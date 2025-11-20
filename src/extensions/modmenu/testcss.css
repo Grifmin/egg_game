@@ -1,0 +1,11 @@
+.modmenu { display: flex; height: 90vh; }
+.sidebar { width: 250px; background: #1e1e2e; color: white; padding: 10px; }
+.search { width: 100%; margin-bottom: 8px; }
+.mod-list { overflow-y: auto; max-height: 80vh; }
+.mod-entry { display: flex; align-items: center; padding: 5px; cursor: pointer; }
+.mod-entry:hover { background: #2a2a3a; }
+.mod-thumb { width: 32px; height: 32px; margin-right: 8px; }
+.details { flex: 1; padding: 20px; background: #2a2a3a; color: white; }
+.big-icon { width: 64px; height: 64px; margin-right: 10px; }
+.header { display: flex; align-items: center; }
+.controls label { display: block; margin: 5px 0; }
