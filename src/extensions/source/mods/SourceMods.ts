@@ -307,11 +307,31 @@ export const onChatKeyDownRewrite = createSourceMod({
 		const srcmatch = /onChatKeyDown:(function\([\w$_]+\){.*?}),startChat:/gm;
 		const [, funcSrc] = execOrThrow(srcmatch, source, "onChatKeyDown.toString()");
 		const [, chatInEl, fixStringWidth] = execOrThrow(/([\w$_]+)\.value=([\w$_]+)\(\1\.value,280/gm, funcSrc);
-		const [, chatFlags, isGameOwner] = execOrThrow(/case"pin":return ([\w$_]+)\?([\w$_]+)\.pinned/gm, funcSrc);
+		/**
+		 * so once again, bwd has randomly decided to unpack the chatFlags variable.
+		 * somtimes its declared like this in the game source:
+		 * ```js
+		 * chatFlags = {
+		 * 		none: 0,
+		 * 		teams: number
+		 * 		ctf: number
+		 * 		... 
+		 * }
+		 * ```
+		 * im guessing with their build process they have an option to unpack / destructure objects at runtime which hard code the variables to:
+		 * chatFlags$none	-> obfuscated name
+		 * chatFlags$teams	-> obfuscated name
+		 * chatFlags$ctf	-> obfuscated name
+		 * 
+		 * so we have to build a patch condition to allow for each case for more reliablity... yay
+		 */
+		// const [, chatFlags, isGameOwner] = execOrThrow(/case"pin":return ([\w$_]+)\?([\w$_]+)\.pinned/gm, funcSrc);
+		const chatFlagsAndGameOwnerRE = /case"pin":return ([\w$_]+)\?([\w$_]+\.pinned|[\w$_]+):([\w$_]+(?:\.none)?)/gm;
+		const [, chatFlags$pinned, isGameOwner, chatFlags$none] = execOrThrow(chatFlagsAndGameOwnerRE, funcSrc, 'onChatKeyDown$chatFlags.pinned')
 		// const teamRe = re.gm`\\?([\\w$_]+)\\?${chatFlags}\\.team/`;
-		const teamRe = /\?([\w$_]+)\?/gm;
+		const teamRe = /\?([\w$_]+)\?([\w_$]+(?:\.team)?)/gm;
 		// console.log(teamRe)
-		const [, isTeamsMode] = execOrThrow(teamRe, funcSrc, "onChatKeyDown.isTeamsMode");
+		const [, isTeamsMode, chatFlags$teams] = execOrThrow(teamRe, funcSrc, "onChatKeyDown.isTeamsMode");
 		// const [, stopChat] = execOrThrow(/\.stopPropagation\(\),([\w$_]+)\(\)}}/gm, funcSrc, 'onChatKeyDown.stopChat')
 		const [, stopChat] = execOrThrow(/([\w$_]+)\(\)}}/gm, funcSrc, "onChatKeyDown.stopChat");
 		const [, chatEvents] = execOrThrow(/"chat",([\w$_]+)\)\}/gm, funcSrc, "onChatKeyDown.chatEvents");
@@ -328,10 +348,6 @@ export const onChatKeyDownRewrite = createSourceMod({
 			const chatIn = document.getElementById('chatIn') as HTMLInputElement;
 			chatIn.setAttribute('list', 'commandSuggetions');
 		})()*/
-		/**
-		 * i want to say, this is merely the replication of the *actualy* functions logic.
-		 * I've not modified this as of yet. (implement first, modify later)
-		 *  */
 		const replacementFunctionSource = /*js*/ `function(event) {
 			const { key } = (event || window.event);
 			${chatInEl}.value = ${fixStringWidth}(${chatInEl}.value, 280); // more filtering of course. 
@@ -342,20 +358,20 @@ export const onChatKeyDownRewrite = createSourceMod({
 					if ('' != text && text.indexOf('<') < 0) {
 						${sendMessageWS}(text);
 						let addChatFlags = ((text) => {
-							if (!text.startsWith('/')) return ${chatFlags}.none;
+							if (!text.startsWith('/')) return ${chatFlags$none};
 							const textArg1 = text.slice(1).split(' ');
 							switch (key) {
 								case 't':
 								case 'team':
-									return textArg1[1] ? ${isTeamsMode} ? ${chatFlags}.team : ${chatFlags}.none : null;
+									return textArg1[1] ? ${isTeamsMode} ? ${chatFlags$teams} : ${chatFlags$none} : null;
 								case "p":
 								case "pin":
-									return ${isGameOwner} ? ${chatFlags}.pinned : ${chatFlags}.none;
+									return ${isGameOwner} ? ${chatFlags$pinned} : ${chatFlags$none};
 								default:
-									return ${chatFlags}.none;
+									return ${chatFlags$none};
 							}
 						})(text); // yea they actually did this.
-						if (addChatFlags != ${chatFlags}.none) {
+						if (addChatFlags != ${chatFlags$none}) {
 							text = ((text) => {
 								let textSplit = text.split(' ');
 								return text.slice(textSplit[0].length + 1);
