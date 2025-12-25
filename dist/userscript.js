@@ -6,7 +6,8 @@
 // @version         12.25.2025
 // @author          Grifmin
 // @description     A work in progress. (if you get this somehow, just know its not complete)
-// @updateURL		https://raw.githubusercontent.com/Grifmin/egg_game/refs/heads/master/dist/userscript.js
+// @updateURL       https://raw.githubusercontent.com/Grifmin/egg_game/refs/heads/master/dist/userscript.js
+// @downloadURL     https://raw.githubusercontent.com/Grifmin/egg_game/refs/heads/master/dist/userscript.js
 // @unwrap
 // ==/UserScript==
 "use strict";
@@ -129,7 +130,7 @@
       return Object.entries(items).map(([key, item]) => ({ item }));
     }
   };
-  var description = "This extension provides an alternative searching method for the inventory. \r\nCompletely optional though. \r\nFeel free to request improvements for the alternative search extension!";
+  var description = "This extension provides an alternative searching method for the inventory. \nCompletely optional though. \nFeel free to request improvements for the alternative search extension!";
   var originalFuse;
   var state;
   function redefine() {
@@ -632,7 +633,7 @@
     };
     attemptDefineModloader();
   }
-  var description2 = "Modifies the game's internal source code on load in.\r\nToggling mods not implemented as of yet. (as i cbf)".trim();
+  var description2 = "Modifies the game's internal source code on load in.\nToggling mods not implemented as of yet. (as i cbf)".trim();
   var Extension2 = createExtension({
     uniqueIdentifier: "Grifmin-SourceExtensions",
     iconUrl: "",
@@ -1027,66 +1028,66 @@ using \`px\` I know is very bad (especially for consistancy)
 `;
 
   // html:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\modmenu/modmenu_screen_template.html
-  var modmenu_screen_template_default = `<div v-if="shouldDisplay" class="modmenu-screen">\r
-	<div class="sidebar modmenu-page-content roundme_sm ss_marginright bg_blue6 common-box-shadow">\r
-		<div class="modmenu-header bg_blue3">\r
-			<header class="f_row align-items-center modmenu-title">\r
-				<section>\r
-					<h1 class="text-shadow-black-40 text_white nospace">Mods</h1>\r
-				</section>\r
-			</header>\r
-			<aside class="'justify-self-end text-right">{{ mods.length }} mods</aside>\r
-			<input v-model="search" placeholder="Search Mods..." class="mod-menusearch ss_field" />\r
-		</div>\r
-		<div class="mod-screen-content">\r
-			<div  class="mod-list">\r
-				<div class="mod-item" v-for="(mod, i) in filteredMods" :key="i" @click="selectMod(mod)">\r
-					<div class="mod-icon"\r
-						:style="{ backgroundImage: mod.iconUrl ? mod.iconUrl : backupURL, backgroundSize: 'cover' }"\r
-						aria-hidden="true"\r
-					></div>\r
-					<div class="mod-info">\r
-						<div class="name">{{ mod.name }}</div>\r
-						<div class="author">{{ mod.author }}</div>\r
-					</div>\r
-				</div>\r
-			</div>\r
-			<div class="mod-details" v-if="selectedMod">\r
-				<div class="mod-meta">\r
-					<header class="mod-select-header">\r
-						<div class="mod-icon" \r
-							:style="{ backgroundImage: selectedMod.iconUrl ? selectedMod.iconUrl : backupURL , backgroundSize: 'cover' }"\r
-							aria-hidden="true"\r
-						></div>\r
-						<div>\r
-							<h3> {{ selectedMod.name }}</h3>\r
-							<p>\r
-								<span class="author-text">Author: </span>\r
-								<span class="author">{{selectedMod.author}}</span>\r
-							</p>\r
-							<p v-if="selectedMod.version">Version: {{ selectedMod.version}}</p>\r
-						</div>\r
-						<aside>\r
-							<button class="mod-config-button ss_button" @click="configurationSelected()" > {{ configButtonText }} </button>\r
-						</aside>\r
-					</header>\r
-				</div>\r
-				<p v-if="desciptionScreen" class="mod-desc">{{ selectedMod.description }}</p>\r
-				<div v-if="!desciptionScreen" class="mod-config">\r
-					<div v-for="(option, idx) in selectedMod.config()" :key="idx">\r
-						<label>\r
-							{{option.label ?? "Default Option(s)"}}\r
-							<input type="checkbox" v-if="option.type == 'Toggle'" v-model="option.value" @change="onOptionsChange(option, idx)">\r
-							<input type="range" v-if="option.type == 'Slider'" v-model.number="option.value" :min="option.min" :max="option.max" @change="onOptionsChange(option, idx)">\r
-							<!-- <input type="text" v-if="option.type == 'Input'" ...> -->\r
-							<!-- todo: implement input box + add in slider increment -->\r
-						</label>\r
-					</div>\r
-				</div>\r
-			</div>\r
-		</div>\r
-	</div>\r
-</div>\r
+  var modmenu_screen_template_default = `<div v-if="shouldDisplay" class="modmenu-screen">
+	<div class="sidebar modmenu-page-content roundme_sm ss_marginright bg_blue6 common-box-shadow">
+		<div class="modmenu-header bg_blue3">
+			<header class="f_row align-items-center modmenu-title">
+				<section>
+					<h1 class="text-shadow-black-40 text_white nospace">Mods</h1>
+				</section>
+			</header>
+			<aside class="'justify-self-end text-right">{{ mods.length }} mods</aside>
+			<input v-model="search" placeholder="Search Mods..." class="mod-menusearch ss_field" />
+		</div>
+		<div class="mod-screen-content">
+			<div  class="mod-list">
+				<div class="mod-item" v-for="(mod, i) in filteredMods" :key="i" @click="selectMod(mod)">
+					<div class="mod-icon"
+						:style="{ backgroundImage: mod.iconUrl ? mod.iconUrl : backupURL, backgroundSize: 'cover' }"
+						aria-hidden="true"
+					></div>
+					<div class="mod-info">
+						<div class="name">{{ mod.name }}</div>
+						<div class="author">{{ mod.author }}</div>
+					</div>
+				</div>
+			</div>
+			<div class="mod-details" v-if="selectedMod">
+				<div class="mod-meta">
+					<header class="mod-select-header">
+						<div class="mod-icon" 
+							:style="{ backgroundImage: selectedMod.iconUrl ? selectedMod.iconUrl : backupURL , backgroundSize: 'cover' }"
+							aria-hidden="true"
+						></div>
+						<div>
+							<h3> {{ selectedMod.name }}</h3>
+							<p>
+								<span class="author-text">Author: </span>
+								<span class="author">{{selectedMod.author}}</span>
+							</p>
+							<p v-if="selectedMod.version">Version: {{ selectedMod.version}}</p>
+						</div>
+						<aside>
+							<button class="mod-config-button ss_button" @click="configurationSelected()" > {{ configButtonText }} </button>
+						</aside>
+					</header>
+				</div>
+				<p v-if="desciptionScreen" class="mod-desc">{{ selectedMod.description }}</p>
+				<div v-if="!desciptionScreen" class="mod-config">
+					<div v-for="(option, idx) in selectedMod.config()" :key="idx">
+						<label>
+							{{option.label ?? "Default Option(s)"}}
+							<input type="checkbox" v-if="option.type == 'Toggle'" v-model="option.value" @change="onOptionsChange(option, idx)">
+							<input type="range" v-if="option.type == 'Slider'" v-model.number="option.value" :min="option.min" :max="option.max" @change="onOptionsChange(option, idx)">
+							<!-- <input type="text" v-if="option.type == 'Input'" ...> -->
+							<!-- todo: implement input box + add in slider increment -->
+						</label>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 `;
 
   // src/extensions/modmenu/index.ts
@@ -1347,7 +1348,7 @@ using \`px\` I know is very bad (especially for consistancy)
 }`;
 
   // html:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\reNotification/notification.html
-  var notification_default2 = '<div id="re-notification" class="roundedBorder"></div>\r\n    <!--<img src="/img/notificationIcon.png"> -->\r\n    <!-- <img src="/favicon192.png"> -->\r\n    <!-- \r\n    ^ this is the closest image to the original\r\n    although, im not really a fan of it, so im going to remove it\r\n    -->\r\n    <div id="re-notificationMessage"></div>\r\n</div>';
+  var notification_default2 = '<div id="re-notification" class="roundedBorder"></div>\n    <!--<img src="/img/notificationIcon.png"> -->\n    <!-- <img src="/favicon192.png"> -->\n    <!-- \n    ^ this is the closest image to the original\n    although, im not really a fan of it, so im going to remove it\n    -->\n    <div id="re-notificationMessage"></div>\n</div>';
 
   // src/extensions/reNotification/index.ts
   var enabledState = false;
