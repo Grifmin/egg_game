@@ -10,7 +10,7 @@
  * @param pollingRate - (ms) the interval rate in which you want to check
  * @param maxTimeout - (ms) the amount of time you want to wait until it stops
  */
-async function WaitForCondition(condition: () => boolean, pollingRate: number = 250, maxTimeout: number = 45_000 ): Promise<void> {
+async function WaitForCondition(condition: () => boolean, pollingRate: number = 250, maxTimeout: number = 45_000): Promise<void> {
 	const StartTime = Date.now(); // when we started
 	let interval!: number;
 	return new Promise((resolve, reject) => {
@@ -28,11 +28,9 @@ async function WaitForCondition(condition: () => boolean, pollingRate: number = 
 
 export { WaitForCondition };
 
-
 /**its just an error */
-export class PatternMatchFailed extends Error {}
+export class PatternMatchFailed extends Error { }
 
-type regexFlags = "g" | "gm"; // i'll add more as i see fit / need to
 /**A templating function for regex patterns (thought it was kind of a neat concept idk) */
 function regexTemplate(flag: regexFlags, strings: TemplateStringsArray, ...values: string[]): RegExp {
 	/**
@@ -51,16 +49,17 @@ function regexTemplate(flag: regexFlags, strings: TemplateStringsArray, ...value
 
 	return new RegExp(transformed, flag);
 }
-/**
- * A neat little concept for transforming strings to regex using js templating
- * @todo add more of these.
- */
-export const re = {
-	/**The RegExp(..., 'GM') version  */
-	gm(strings: TemplateStringsArray, ...values: string[]) {
-		return regexTemplate("gm", strings, ...values);
-	},
-};
+
+const validCharacters = 'gmidusvy';
+export const re: reProxy = new Proxy({}, {
+	get(_, flags: string) {
+		const charsValid = flags.split('').every(char => validCharacters.includes(char));
+		if (!charsValid) throw new PatternMatchFailed(`${flags} includes invalid characters. valid characters: ${validCharacters}`);
+		return (strings: TemplateStringsArray, ...values: string[]) => {
+			return regexTemplate(flags as regexFlags, strings, ...values);
+		};
+	}
+}) as reProxy;
 
 /**
  * a little helper function to aid with conditional regex shit (because ts is a bit annoying)
@@ -75,3 +74,12 @@ export function execOrThrow(pattern: RegExp, source: string, reason?: string) {
 	}
 	return result;
 }
+
+// # types
+
+//valid characters (that i know of)
+type reChars = 'g' | 'm' | 's' | 'd' | 'i' | 'u' | 'y' | 's' | 'v'
+// good enough, could probably do more. but ehh
+type regexFlags = `${reChars}` | `${reChars}${reChars}` | `${reChars}${reChars}${reChars}`
+type reTemplateFunc = (strings: TemplateStringsArray, ...values: string[]) => RegExp;
+type reProxy = Record<regexFlags, reTemplateFunc>
