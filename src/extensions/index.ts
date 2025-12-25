@@ -85,7 +85,7 @@ export function setupExtensions() {
 		debugError(`Loading: %c${Ext.uniqueIdentifier} - ${result.message}`, result);
 	}
 
-	const duration = performance.now() - setupStart;
+	const duration = (performance.now() - setupStart).toFixed(2);
 	const loadedSuccessfully = Client.extensions.filter((extension) => extension.processed == true);
 	const message = `Loaded %c${loadedSuccessfully.length}%c/%c${Client.extensions.length}%c extensions in %c${duration}%cms successfully`;
 	debugInfo(message, css.number, "", css.number, "", css.number, "");

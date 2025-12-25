@@ -89,7 +89,7 @@ export function CoreLoader(
 	for (const sourceMod of SourceModsToLoad) {
 		const sourceModStart = performance.now();
 		const result = attemptSourceMod(sourceMod, modifiedSource);
-		const sourceModDuration = performance.now() - sourceModStart;
+		const sourceModDuration = (performance.now() - sourceModStart).toFixed(2);
 		if (result instanceof Error) {
 			const errormessage = `Loading sourcemod ${sourceMod.name} %c${sourceModDuration}%cms - `;
 			debugError(errormessage, css.number, "", result.message);
@@ -110,7 +110,7 @@ export function CoreLoader(
 		modifiedSource = CoreLoader(modifiedSource, skippedMods, iteration + 1, maxIteration); // and we hope things dont get *too* broken :kekw:
 	}
 	if (iteration > 0) return modifiedSource; // i apparently have a logic error somewhere. this will be a temp patch as i cbf atm
-	const totalDuration = performance.now() - sourceModsModificationStart;
+	const totalDuration = (performance.now() - sourceModsModificationStart).toFixed(2);
 	debugInfo(`All Source Modifications completed in %c${totalDuration}%cms`, css.number, "");
 	return modifiedSource;
 }

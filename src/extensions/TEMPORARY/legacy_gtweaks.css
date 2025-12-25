@@ -1,5 +1,5 @@
 /* Ads / Junk they attempt to stuff down our throat */
-.house-ad-wrapper #respawn-ad-two #respawn-ad-two #welcome-bundle-ui .welcome-bundle-ui {
+.house-ad-wrapper, #respawn-ad-two, #respawn-ad-two, #welcome-bundle-ui, .welcome-bundle-ui {
 	display: none !important;
 }
 img[src="img/eggstra-value-pack.webp"] {
@@ -7,7 +7,7 @@ img[src="img/eggstra-value-pack.webp"] {
 	display: none !important;
 }
 /* vip club annoyances */
-.free-games-logo .vip-club-cta .free-games-title #chickenBadge {
+.free-games-logo, .vip-club-cta, .free-games-title #chickenBadge {
 	display: none !important;
 }
 /* playerList stuff */
@@ -34,6 +34,7 @@ img[src="img/eggstra-value-pack.webp"] {
 	/* ^ this allows for a (decent in my opinion) size window (for max size)*/
 }
 #chatOut {
+	scrollbar-color: transparent transparent; 
 	overflow-y: auto;
 	scroll-behavior: smooth;
 	overflow: scroll;

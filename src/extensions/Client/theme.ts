@@ -9,13 +9,14 @@
  * @todo (Grif) - finish this if i ever get the time / nerve
  * @author Grifmin
  */
-// import { createExtension } from "..";
+import { WaitForCondition } from "./Utilities.ts";
 
 const styleDivIdentifier = "ThemeManager-div";
 let ThemeDiv!: HTMLDivElement;
 
-function getDiv() {
+async function getDiv() {
 	if (ThemeDiv) return ThemeDiv;
+	await WaitForCondition(() => document.readyState == 'complete');
 	const div = document.createElement("div");
 	div.id = styleDivIdentifier;
 	document.body.append(div);
@@ -31,18 +32,18 @@ function getDiv() {
  */
 export const ThemeManager: ThemeManagerInterface = {
 	themes: {},
-	addStyle: function (styleElement: HTMLStyleElement | string, identifier?: string): HTMLStyleElement {
+	addStyle: async function (styleElement: HTMLStyleElement | string, identifier?: string): Promise<HTMLStyleElement> {
 		// styleElement.id = identifier; // just incase some someone decides to do some shenanigans
-		if (typeof styleElement == 'string' ) {
+		if (typeof styleElement == 'string') {
 			const css = styleElement;
 			styleElement = document.createElement('style');
 			styleElement.innerHTML = css;
 			if (identifier) styleElement.id = identifier;
-		} 
+		}
 
 		if (!identifier) identifier = styleElement.id;
 		if (document.body) {
-			const ThemeDiv = getDiv();
+			const ThemeDiv = await getDiv();
 			ThemeDiv.append(styleElement);
 			this.themes[identifier] = styleElement;
 			return styleElement;
@@ -50,9 +51,13 @@ export const ThemeManager: ThemeManagerInterface = {
 		document.addEventListener(
 			"DOMContentLoaded",
 			() => {
-				const ThemeDiv = getDiv();
-				ThemeDiv.append(styleElement);
-				this.themes[identifier] = styleElement;
+				getDiv().then(
+					ThemeDiv => {
+						ThemeDiv.append(styleElement);
+						this.themes[identifier] = styleElement;
+
+					}
+				)
 			},
 			{ once: true }
 		);
@@ -96,5 +101,5 @@ export const ThemeManager: ThemeManagerInterface = {
 export interface ThemeManagerInterface {
 	/**A list of all style / css */
 	themes: Record<string, HTMLStyleElement>;
-	addStyle(styleElement: HTMLStyleElement | string, identifier?: string): HTMLStyleElement;
+	addStyle(styleElement: HTMLStyleElement | string, identifier?: string): Promise<HTMLStyleElement>;
 }

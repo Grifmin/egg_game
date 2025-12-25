@@ -3,7 +3,7 @@
 // @namespace       Grifmin-GTweaks-V2
 // @match           *://*shellshock.io/*
 // @run-at          document-start
-// @version         11.18.2025
+// @version         12.24.2025
 // @author          Grifmin
 // @description     A work in progress. (if you get this somehow, just know its not complete)
 // @updateURL		https://raw.githubusercontent.com/Grifmin/egg_game/refs/heads/master/dist/userscript.js
@@ -588,7 +588,7 @@
     for (const sourceMod of SourceModsToLoad) {
       const sourceModStart = performance.now();
       const result = attemptSourceMod(sourceMod, modifiedSource);
-      const sourceModDuration = performance.now() - sourceModStart;
+      const sourceModDuration = (performance.now() - sourceModStart).toFixed(2);
       if (result instanceof Error) {
         const errormessage = `Loading sourcemod ${sourceMod.name} %c${sourceModDuration}%cms - `;
         debugError(errormessage, css.number, "", result.message);
@@ -609,7 +609,7 @@
       modifiedSource = CoreLoader(modifiedSource, skippedMods, iteration + 1, maxIteration);
     }
     if (iteration > 0) return modifiedSource;
-    const totalDuration = performance.now() - sourceModsModificationStart;
+    const totalDuration = (performance.now() - sourceModsModificationStart).toFixed(2);
     debugInfo(`All Source Modifications completed in %c${totalDuration}%cms`, css.number, "");
     return modifiedSource;
   }
@@ -741,8 +741,9 @@
   // src/extensions/Client/theme.ts
   var styleDivIdentifier = "ThemeManager-div";
   var ThemeDiv;
-  function getDiv() {
+  async function getDiv() {
     if (ThemeDiv) return ThemeDiv;
+    await WaitForCondition(() => document.readyState == "complete");
     const div = document.createElement("div");
     div.id = styleDivIdentifier;
     document.body.append(div);
@@ -751,7 +752,7 @@
   }
   var ThemeManager = {
     themes: {},
-    addStyle: function(styleElement, identifier) {
+    addStyle: async function(styleElement, identifier) {
       if (typeof styleElement == "string") {
         const css2 = styleElement;
         styleElement = document.createElement("style");
@@ -760,7 +761,7 @@
       }
       if (!identifier) identifier = styleElement.id;
       if (document.body) {
-        const ThemeDiv2 = getDiv();
+        const ThemeDiv2 = await getDiv();
         ThemeDiv2.append(styleElement);
         this.themes[identifier] = styleElement;
         return styleElement;
@@ -768,9 +769,12 @@
       document.addEventListener(
         "DOMContentLoaded",
         () => {
-          const ThemeDiv2 = getDiv();
-          ThemeDiv2.append(styleElement);
-          this.themes[identifier] = styleElement;
+          getDiv().then(
+            (ThemeDiv2) => {
+              ThemeDiv2.append(styleElement);
+              this.themes[identifier] = styleElement;
+            }
+          );
         },
         { once: true }
       );
@@ -778,7 +782,7 @@
     }
   };
 
-  // css:/home/grif/Documents/programs/python/api/modding work/Compiled_mods/esbuild/src/extensions/Client/default.css
+  // css:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\Client/default.css
   var default_default = `/* this is just a safety precaution. it shouldnt ever be visible, but just incase im going to ensure it is */
 .firebaseID {
 	visibility: hidden !important;
@@ -841,7 +845,7 @@
     addDefaultCss();
   }
 
-  // css:/home/grif/Documents/programs/python/api/modding work/Compiled_mods/esbuild/src/extensions/modmenu/modmenu.css
+  // css:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\modmenu/modmenu.css
   var modmenu_default = `/*
 neat notes i found: 
 1em = 1.375em (roughly) 
@@ -1021,7 +1025,7 @@ using \`px\` I know is very bad (especially for consistancy)
 }
 `;
 
-  // html:/home/grif/Documents/programs/python/api/modding work/Compiled_mods/esbuild/src/extensions/modmenu/modmenu_screen_template.html
+  // html:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\modmenu/modmenu_screen_template.html
   var modmenu_screen_template_default = `<div v-if="shouldDisplay" class="modmenu-screen">
 	<div class="sidebar modmenu-page-content roundme_sm ss_marginright bg_blue6 common-box-shadow">
 		<div class="modmenu-header bg_blue3">
@@ -1312,7 +1316,7 @@ using \`px\` I know is very bad (especially for consistancy)
     }
   });
 
-  // css:/home/grif/Documents/programs/python/api/modding work/Compiled_mods/esbuild/src/extensions/reNotification/notification.css
+  // css:C:\Users\Grif\Documents\programs\git\egg_game\src\extensionseNotification/notification.css
   var notification_default = `/* notifications stuff */
 #re-notification {
 	/* background: rgba(0, 0, 0, 0.25);
@@ -1341,7 +1345,7 @@ using \`px\` I know is very bad (especially for consistancy)
 	margin-right: 0.75em;
 }`;
 
-  // html:/home/grif/Documents/programs/python/api/modding work/Compiled_mods/esbuild/src/extensions/reNotification/notification.html
+  // html:C:\Users\Grif\Documents\programs\git\egg_game\src\extensionseNotification/notification.html
   var notification_default2 = '<div id="re-notification" class="roundedBorder"></div>\n    <!--<img src="/img/notificationIcon.png"> -->\n    <!-- <img src="/favicon192.png"> -->\n    <!-- \n    ^ this is the closest image to the original\n    although, im not really a fan of it, so im going to remove it\n    -->\n    <div id="re-notificationMessage"></div>\n</div>';
 
   // src/extensions/reNotification/index.ts
@@ -1508,9 +1512,9 @@ using \`px\` I know is very bad (especially for consistancy)
     });
   }
 
-  // css:/home/grif/Documents/programs/python/api/modding work/Compiled_mods/esbuild/src/extensions/TEMPORARY/legacy_gtweaks.css
+  // css:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\TEMPORARY/legacy_gtweaks.css
   var legacy_gtweaks_default = `/* Ads / Junk they attempt to stuff down our throat */
-.house-ad-wrapper #respawn-ad-two #respawn-ad-two #welcome-bundle-ui .welcome-bundle-ui {
+.house-ad-wrapper, #respawn-ad-two, #respawn-ad-two, #welcome-bundle-ui, .welcome-bundle-ui {
 	display: none !important;
 }
 img[src="img/eggstra-value-pack.webp"] {
@@ -1518,7 +1522,7 @@ img[src="img/eggstra-value-pack.webp"] {
 	display: none !important;
 }
 /* vip club annoyances */
-.free-games-logo .vip-club-cta .free-games-title #chickenBadge {
+.free-games-logo, .vip-club-cta, .free-games-title #chickenBadge {
 	display: none !important;
 }
 /* playerList stuff */
@@ -1545,6 +1549,7 @@ img[src="img/eggstra-value-pack.webp"] {
 	/* ^ this allows for a (decent in my opinion) size window (for max size)*/
 }
 #chatOut {
+	scrollbar-color: transparent transparent; 
 	overflow-y: auto;
 	scroll-behavior: smooth;
 	overflow: scroll;
@@ -1668,7 +1673,7 @@ img[src="img/eggstra-value-pack.webp"] {
       }
       debugError(`Loading: %c${Ext.uniqueIdentifier} - ${result.message}`, result);
     }
-    const duration = performance.now() - setupStart;
+    const duration = (performance.now() - setupStart).toFixed(2);
     const loadedSuccessfully = Client.extensions.filter((extension) => extension.processed == true);
     const message = `Loaded %c${loadedSuccessfully.length}%c/%c${Client.extensions.length}%c extensions in %c${duration}%cms successfully`;
     debugInfo(message, css.number, "", css.number, "", css.number, "");
