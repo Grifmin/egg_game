@@ -123,24 +123,32 @@ using `px` I know is very bad (especially for consistancy)
 }
 
 .mod-desc {
-	flex: 1;
 	font-size: 1em;
 	line-height: 1.4;
 	white-space: pre-line;
-	border: red solid;
-	border-radius: .25em;
-	margin-top: .625em;
-	padding: .625em;
-	overflow-y: auto;
 }
+
 .mod-config {
-	flex: 1;
-	border: red solid;
+	margin-bottom: 1em;
+}
+
+/* this is shared between the two */
+.mod-config, .mod-desc {
+	/* border: red solid; */
+	border: var(--ss-common-border-width) solid var(--ss-blue5);
+	background-color: var(--ss-blue2);
 	border-radius: .25em;
 	margin-top: .625em;
 	padding: .625em;
 	overflow-y: auto;
-	margin-bottom: 1em;
+	flex: 1;
+}
+/* this fixes the labels being difficult to read on the config page */
+.mod-config label {
+	font-weight: 600;
+	display: flex;
+	flex-direction: row-reverse;
+	justify-content: left;
 }
 
 .mod-config-button {

@@ -3,7 +3,7 @@
 // @namespace       Grifmin-GTweaks-V2
 // @match           *://*shellshock.io/*
 // @run-at          document-start
-// @version         12.25.2025
+// @version         12.28.2025
 // @author          Grifmin
 // @description     A work in progress. (if you get this somehow, just know its not complete)
 // @updateURL       https://raw.githubusercontent.com/Grifmin/egg_game/refs/heads/master/dist/userscript.js
@@ -269,12 +269,18 @@
     const transformed = strings.map((str, idx) => str + LITERAL(values[idx])).join("");
     return new RegExp(transformed, flag);
   }
-  var re = {
-    /**The RegExp(..., 'GM') version  */
-    gm(strings, ...values) {
-      return regexTemplate("gm", strings, ...values);
+  var defaultRegexTemplate = (strings, ...values) => regexTemplate("", strings, ...values);
+  var validCharacters = "gmidusvy";
+  var re = new Proxy(defaultRegexTemplate, {
+    get(target, flags) {
+      if (flags == "name") return target;
+      const charsValid = flags.split("").every((char) => validCharacters.includes(char));
+      if (!charsValid) throw new PatternMatchFailed(`"${flags}" includes invalid characters. valid characters: ${validCharacters}`);
+      return (strings, ...values) => {
+        return regexTemplate(flags, strings, ...values);
+      };
     }
-  };
+  });
   function execOrThrow(pattern, source, reason) {
     const result = pattern.exec(source);
     if (!result) {
@@ -973,24 +979,32 @@ using \`px\` I know is very bad (especially for consistancy)
 }
 
 .mod-desc {
-	flex: 1;
 	font-size: 1em;
 	line-height: 1.4;
 	white-space: pre-line;
-	border: red solid;
-	border-radius: .25em;
-	margin-top: .625em;
-	padding: .625em;
-	overflow-y: auto;
 }
+
 .mod-config {
-	flex: 1;
-	border: red solid;
+	margin-bottom: 1em;
+}
+
+/* this is shared between the two */
+.mod-config, .mod-desc {
+	/* border: red solid; */
+	border: var(--ss-common-border-width) solid var(--ss-blue5);
+	background-color: var(--ss-blue2);
 	border-radius: .25em;
 	margin-top: .625em;
 	padding: .625em;
 	overflow-y: auto;
-	margin-bottom: 1em;
+	flex: 1;
+}
+/* this fixes the labels being difficult to read on the config page */
+.mod-config label {
+	font-weight: 600;
+	display: flex;
+	flex-direction: row-reverse;
+	justify-content: left;
 }
 
 .mod-config-button {
