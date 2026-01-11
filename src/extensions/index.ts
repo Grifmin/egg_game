@@ -144,7 +144,7 @@ export interface ExtensionInstance<TSettings extends Record<string, any>, TConfi
 	onOptionsChange?: (
 		this: ExtensionInstance<TSettings, TConfig>,
 		updatedState: TConfig[number] & { label?: string }
-	) => boolean;
+	) => void;
 	isEnabled?(this: ExtensionInstance<TSettings, TConfig>): boolean;
 	/**If this is true on one (or any) extension, the window request Refresh button will be applied */
 	requestRefresh?(this: ExtensionInstance<TSettings, TConfig>): boolean;

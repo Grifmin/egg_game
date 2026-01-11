@@ -50,36 +50,53 @@ export const Extension = createExtension({
 		for (const { name } of SourceMods) {
 			let state = this.settings.modStates[name];
 			if (state == undefined) state = true;
-			const individualModOptions = { type: "Toggle", label: `${name} - toggle`, value: state};
+			const individualModOptions = { type: "Toggle", label: `${name} - toggle`, value: state };
 			configOptions.push(individualModOptions);
 		}
 		return configOptions as TODO; // ree
 	},
 	init: function (): void {
-		initialModSettings = JSON.parse(JSON.stringify(this.settings)); // update state
-		if (this.settings.enabled == false) return;
-		for (let [modName, enabled] of Object.entries(this.settings.modStates)) {
-			if (enabled == undefined) enabled = true;
+		const { modStates } = this.settings;
+		SourceMods.forEach((mod) => {
+			if (modStates[mod.name]) return;
+			modStates[mod.name] = true; // if no entry, we make one. (default enabled)
+		});
+		for (let [modName, enabled] of Object.entries(modStates)) {
+			if (enabled == undefined) enabled = true; // probably dont need this. but i'll leave it in.
 			const mod = SourceMods.find((mod) => mod.name == modName);
+			modStates[modName] = enabled;
 			if (mod) Object.assign(mod, { disabled: !enabled });
 		}
+		this.settings.modStates = modStates; // have to force update (until my settingsProxy is updated)
+		initialModSettings = JSON.parse(JSON.stringify(this.settings)); // update initial state
+		if (this.settings.enabled == false) return;
 		ApplySourceInterception();
 	},
 	onOptionsChange(updatedState) {
-		if (updatedState.type != "Toggle") return false;
-		// debugWarn(`${this.name} - window refresh request. - Grif fix this you lazy bastard.`);
+		if (updatedState.type != "Toggle") return; // we only have toggles in this ext.
 
 		if (updatedState.label == baseLabel) {
 			this.settings.enabled = updatedState.value;
-			return updatedState.value;
+			return;
 		}
 		const modName = (updatedState.label as string)?.replace(" - toggle", "");
 		const targetMod = SourceMods.find((mod) => mod.name == modName);
 		if (!targetMod) {
-			debugWarn(`Unable to find target mod to toggle the state of with ${updatedState.label}?`);
-			return false;
+			return debugWarn(`Unable to find target mod to toggle the state of with ${updatedState.label}?`);
 		}
 		const newState = this.settings.modStates;
+		if (newState[modName] == undefined) {
+			newState[modName] = true;
+			(initialModSettings as typeof this.settings).modStates[modName] = true;
+			/**
+			 * by default if its entered (or undefined) it should be enabled. (so we force the entry into it)
+			 * i added this exception as i noticed other extensions that load there own source mods dont seem
+			 * to always load at the same time as this extension. therefore, my init settings dont get to load
+			 * in time to put in a manual entry.
+			 *
+			 * yes, this is gheto. but ehh
+			 *  */
+		}
 		newState[modName] = !newState[modName];
 		this.settings.modStates = newState;
 		/**
@@ -87,7 +104,7 @@ export const Extension = createExtension({
 		 * guess thats just another thing to go back and do.
 		 * @todo (Grif) - make settings recursively proxy each object to detect mutations
 		 */
-		return updatedState.value;
+		return; // returning a value is no longer relevent.
 	},
 	isEnabled() {
 		return this.settings.enabled;

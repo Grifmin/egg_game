@@ -3,7 +3,7 @@
 // @namespace       Grifmin-GTweaks-V2
 // @match           *://*shellshock.io/*
 // @run-at          document-start
-// @version         1.10.2026
+// @version         1.11.2026
 // @author          Grifmin
 // @description     A work in progress. (if you get this somehow, just know its not complete)
 // @updateURL       https://raw.githubusercontent.com/Grifmin/egg_game/refs/heads/master/dist/userscript.js
@@ -926,31 +926,42 @@ Toggling mods not implemented as of yet. (as i cbf)
       return configOptions;
     },
     init: function() {
-      initialModSettings = JSON.parse(JSON.stringify(this.settings));
-      if (this.settings.enabled == false) return;
-      for (let [modName, enabled] of Object.entries(this.settings.modStates)) {
+      const { modStates } = this.settings;
+      SourceMods.forEach((mod) => {
+        if (modStates[mod.name]) return;
+        modStates[mod.name] = true;
+      });
+      for (let [modName, enabled] of Object.entries(modStates)) {
         if (enabled == void 0) enabled = true;
         const mod = SourceMods.find((mod2) => mod2.name == modName);
+        modStates[modName] = enabled;
         if (mod) Object.assign(mod, { disabled: !enabled });
       }
+      this.settings.modStates = modStates;
+      initialModSettings = JSON.parse(JSON.stringify(this.settings));
+      if (this.settings.enabled == false) return;
       ApplySourceInterception();
     },
     onOptionsChange(updatedState) {
       if (updatedState.type != "Toggle") return false;
       if (updatedState.label == baseLabel) {
         this.settings.enabled = updatedState.value;
-        return updatedState.value;
+        return;
       }
       const modName = updatedState.label?.replace(" - toggle", "");
       const targetMod = SourceMods.find((mod) => mod.name == modName);
       if (!targetMod) {
-        debugWarn(`Unable to find target mod to toggle the state of with ${updatedState.label}?`);
-        return false;
+        return debugWarn(`Unable to find target mod to toggle the state of with ${updatedState.label}?`);
       }
       const newState = this.settings.modStates;
+      if (newState[modName] == void 0) {
+        debugDebug(`updating patch for newState of SourceMods for ${modName}`);
+        newState[modName] = true;
+        initialModSettings.modStates[modName] = true;
+      }
       newState[modName] = !newState[modName];
       this.settings.modStates = newState;
-      return updatedState.value;
+      return;
     },
     isEnabled() {
       return this.settings.enabled;
@@ -959,7 +970,9 @@ Toggling mods not implemented as of yet. (as i cbf)
       const enabledStateMatches = this.settings.enabled == initialModSettings.enabled;
       const initialModStates = initialModSettings.modStates;
       const modStatesMatch = Object.entries(this.settings.modStates).every(([key, value]) => initialModStates[key] == value);
-      return !enabledStateMatches || !modStatesMatch;
+      const refreshCondition = !enabledStateMatches || !modStatesMatch;
+      debugDebug(`${this.name} - refreshCondition: ${refreshCondition}`);
+      return refreshCondition;
     }
   });
 
@@ -998,7 +1011,6 @@ Toggling mods not implemented as of yet. (as i cbf)
       ProtectAllowExtension.forEach(ProtectInternals);
     } catch (err) {
       if (!(err instanceof TypeError)) throw err;
-      console.log(err);
       throw err;
     }
   }
@@ -1246,6 +1258,7 @@ This could cause some incompatibility with other mods. (as it attempts to protec
           backupURL: `url('https://www.svgrepo.com/show/454209/gear-player-multimedia.svg')`,
           search: "",
           selectedMod: extensions.find((ext) => ext.name == ModMenuName),
+          refreshWanted: false,
           configuration: false,
           mods: extensions,
           refreshDetected: () => {
@@ -1255,6 +1268,10 @@ This could cause some incompatibility with other mods. (as it attempts to protec
               }
               return false;
             }
+            extensions.forEach((ext) => {
+              const refreshDetected = ModRequestedRefresh(ext);
+              debugDebug(`ModMenuScreen - refreshDetected: ${refreshDetected} - ${ext.name}`);
+            });
             return extensions.some(ModRequestedRefresh);
           }
         };
@@ -1267,6 +1284,7 @@ This could cause some incompatibility with other mods. (as it attempts to protec
       computed: {
         /**@todo */
         refreshRequested() {
+          return this.refreshWanted;
           return this.refreshDetected();
         },
         /**this is to let it know when it should be displayed */
@@ -1305,6 +1323,9 @@ This could cause some incompatibility with other mods. (as it attempts to protec
         onOptionsChange(option, idx) {
           if (!(this.selectedMod && this.selectedMod.onOptionsChange)) return;
           this.selectedMod.onOptionsChange(option);
+          this.$forceUpdate();
+          this.refreshWanted = this.refreshDetected();
+          debugDebug(`modmenu onOptionsChange `);
         }
       }
     });
@@ -1349,13 +1370,6 @@ This could cause some incompatibility with other mods. (as it attempts to protec
       if (!this.settings.enabled) return;
       WaitUntilSetup();
     },
-    // config() {
-    // 	return [
-    // 		{ type: "Toggle", label: "Test 1", value: true },
-    // 		{ type: "Toggle", label: "Test 2", value: false },
-    // 		{ type: "Slider", label: "Test slider", max: 100, min: 0, value: 50 },
-    // 	];
-    // },
     onOptionsChange(updateState) {
       debugDebug(`${this.name} - ${this.onOptionsChange?.name}: `, updateState);
       return false;

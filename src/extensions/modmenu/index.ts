@@ -95,6 +95,7 @@ async function WaitUntilSetup() {
 				backupURL: `url('https://www.svgrepo.com/show/454209/gear-player-multimedia.svg')`,
 				search: "",
 				selectedMod: extensions.find((ext) => ext.name == ModMenuName),
+				refreshWanted: false,
 				configuration: false,
 				mods: extensions,
 				refreshDetected: () => {
@@ -104,7 +105,6 @@ async function WaitUntilSetup() {
 						}
 						return false;
 					}
-					// theoretically this *should* work. but it doesnt. (big sadge)
 					return extensions.some(ModRequestedRefresh);
 				},
 			};
@@ -117,15 +117,7 @@ async function WaitUntilSetup() {
 		computed: {
 			/**@todo */
 			refreshRequested(): boolean {
-				// function ModRequestedRefresh(mod: ExtensionInstance<any, any>): boolean {
-				// 	if (mod.requestRefresh && mod.requestRefresh()) {
-				// 		return true
-				// 	}
-				// 	return false;
-				// }
-				// // theoretically this *should* work. but it doesnt. (big sadge)
-				// return this.mods.some(ModRequestedRefresh);
-				return this.refreshDetected();
+				return this.refreshWanted;
 			},
 			/**this is to let it know when it should be displayed */
 			shouldDisplay(): boolean {
@@ -164,6 +156,9 @@ async function WaitUntilSetup() {
 			onOptionsChange(option: TODO, idx: number): void {
 				if (!(this.selectedMod && this.selectedMod.onOptionsChange)) return;
 				this.selectedMod.onOptionsChange(option);
+				this.refreshWanted = this.refreshDetected(); 
+				// ^ so i noticed that some of the options get cached and dont get computed correctly.
+				// this just forces the vuejs to recompute more often. (probably not efficient, but ehh)
 			},
 		},
 	});
