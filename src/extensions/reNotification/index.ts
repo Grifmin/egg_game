@@ -1,7 +1,7 @@
 /**
  * @author Grifmin
  */
-import { createExtension, ExtensionInstance } from "..";
+import { createExtension, ExtensionInstance } from "../";
 import { Client } from "../Client";
 import { WaitForCondition } from "../Client/Utilities";
 import cssStr from "./notification.css";
@@ -44,7 +44,7 @@ function notify(msg: string, timeout?: number) {
 	// notifyDivMessage.textContent = msg;
 	notifyDiv.textContent = msg;
 	let anim = 0;
-	let animIn = setInterval(() => {
+	const animIn = setInterval(() => {
 		// wait for it to be visible before doing anything.
 		if (document.visibilityState == "hidden") return;
 		anim++;

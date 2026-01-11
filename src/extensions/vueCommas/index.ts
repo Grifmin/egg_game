@@ -2,8 +2,7 @@
  * asdd in commas to the games in stats, current currency, and shop
  * @author Grifmin
  */
-
-import { createExtension } from "..";
+import { createExtension } from "../";
 import { WaitForCondition } from "../Client/Utilities";
 
 // # variables
@@ -19,7 +18,7 @@ function setupStatAlternative(this: StatTemplateCtx, stat: statVar) {
 	if (this.stat.kdr !== undefined && typeof stat != "number" && typeof stat[0] == "number") {
 		return this.kdr(stat[0], stat[1]);
 	} else if (stat && typeof stat != "number") {
-		let [first, second] = stat.map((v) => (typeof v == "number" ? v.toLocaleString() : v));
+		const [first, second] = stat.map((v) => (typeof v == "number" ? v.toLocaleString() : v));
 		return `<div>${first}</div> <div>${second.toLocaleString()}</div>`;
 	} else {
 		return typeof stat == "number" ? stat.toLocaleString() : stat;
@@ -76,6 +75,7 @@ function comp_item$ItemPriceOverwrite() {
 	});
 }
 
+let initialLoadCondition!: boolean;
 // # extension
 export const Extension = createExtension({
 	uniqueIdentifier: "Grifmin-ui_commas",
@@ -88,6 +88,7 @@ export const Extension = createExtension({
 		return [{ type: "Toggle", label: "Enabled", value: this.settings.enable }];
 	},
 	init: function (): void {
+		initialLoadCondition = this.settings.enable; // ehh. 
 		if (!this.settings.enable) return;
 		comp_item$ItemPriceOverwrite();
 		statTemplateMixin();
@@ -112,6 +113,15 @@ export const Extension = createExtension({
 	isEnabled() {
 		return true;
 	},
+	/**
+	 * I should actually be able to make this hot togglable.
+	 * But that would require a bit of extra effort. Plus im unsure if using mixins could cause conflictions with other mods...
+	 * 
+	 * @todo (Grif) - re visit this at some point. 
+	 */
+	requestRefresh() {
+		return initialLoadCondition != this.settings.enable;
+	}
 });
 
 // # types

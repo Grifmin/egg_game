@@ -5,6 +5,7 @@ type settings = Record<string, any>
 /**
  * An attempt at a persistant object (semi persistant. must be JSON serializable)
  */
+// TODO: (Grif) - make settings be able to recursively change settings
 function storageProxy<T extends settings>(key: string, blueprint: BluePrint<T>): T {
 	const load = (): T => {
 		const saved = localStorage.getItem(key);

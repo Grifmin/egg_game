@@ -3,7 +3,7 @@
  * @author Grifmin
  * */
 
-import { css, debugError, debugInfo, debugWarn } from "../logging";
+import { css, debugDebug, debugError, debugInfo, debugWarn } from "../logging";
 import { ModLoader } from "./ModLoader";
 import { SourceMods } from "./mods";
 
@@ -55,16 +55,18 @@ function getFullSourceMappings(sourceMod: SourceMod<any, readonly string[]>): { 
 function attemptSourceMod(
 	sourceMod: SourceMod<any, readonly string[]>,
 	currentSource: string
-): string | undefined | Error {
+): ModLoadState{
 	const specifiedMappings = getFullSourceMappings(sourceMod);
+	const LoadState: ModLoadState = {disabled: !!sourceMod.disabled} 
+	if (LoadState.disabled) return LoadState;
 	try {
-		const newSource = sourceMod.modify(currentSource, specifiedMappings as TODO);
+		const newSource = LoadState.source = sourceMod.modify(currentSource, specifiedMappings as TODO);
 		const result = validateSourceCode(newSource);
 		if (result instanceof Error) throw result; // we will just throw it and pass to the catch clause.
-		return newSource;
 	} catch (err) {
-		return err as Error;
+		LoadState.error = err as Error;
 	}
+	return LoadState as ModLoadState;
 }
 
 /**
@@ -85,20 +87,22 @@ export function CoreLoader(
 	let modifiedSource = originalSource;
 	const sourceModsModificationStart = performance.now(); // this is the starttimer
 	const [SourceModsToLoad, skippedMods] = [sourceMods.filter(AcceptableMods), sourceMods.filter((m) => !AcceptableMods(m))];
-	// debugDebug(`SourceModification DBG: `, {SourceModsToLoad, skippedMods})
 	for (const sourceMod of SourceModsToLoad) {
 		const sourceModStart = performance.now();
 		const result = attemptSourceMod(sourceMod, modifiedSource);
 		const sourceModDuration = (performance.now() - sourceModStart).toFixed(2);
-		if (result instanceof Error) {
+		if (result.error) {
 			const errormessage = `Loading sourcemod ${sourceMod.name} %c${sourceModDuration}%cms - `;
-			debugError(errormessage, css.number, "", result.message);
+			debugError(errormessage, css.number, "", result.error.message);
 			continue;
-		} else if (!result) {
+		} else if (result.disabled) {
+			debugWarn(`Source Modification ${sourceMod.name} disabled.`);
+			continue;
+		} else if (!result.source) {
 			debugWarn(`Source Modification ${sourceMod.name} didnt return type string`, { result });
 			continue;
 		}
-		modifiedSource = result;
+		modifiedSource = result.source as string; 
 		debugInfo(`Source Modification ${sourceMod.name} %c${sourceModDuration}%cms`, css.number, "");
 	}
 	if (skippedMods.length || iteration > 0) {
@@ -123,6 +127,7 @@ export interface SourceMod<T extends PseudoSettings = PseudoSettings, M extends 
 	description: string;
 	options?: T;
 	version?: any;
+	disabled?: boolean
 	/**A specifier to only load if the requested mappings are available. */
 	readonly requiredMappings?: M;
 	// modify(source: string): string;
@@ -133,4 +138,10 @@ export interface SourceMod<T extends PseudoSettings = PseudoSettings, M extends 
 	/**
 	 * @todo (Grif) - think of a better system for this
 	 */
+}
+
+interface ModLoadState {
+	error?: Error,
+	source?: string,
+	disabled: boolean,
 }

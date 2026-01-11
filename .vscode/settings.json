@@ -1,0 +1,32 @@
+{
+    // deno bs
+    "deno.enable": true,
+    "deno.lint": true,
+    // trying to force tabs by default (i prefer them)
+    "editor.tabSize": 4,
+    "editor.useTabStops": true,
+    "editor.autoIndentOnPaste": true,
+    // prettier config stuff
+    "prettier.useTabs": true,
+    "prettier.printWidth": 125,
+    // I have a 1440p display, and dont mind a few extra characters personally.
+    // but there is a limit
+
+    // this is just some general cleanup for my IDE
+    "files.exclude": {
+        "deno.jsonc": true,
+        "deno.lock": true,
+        "license": true,
+    },
+    "search.exclude": {
+        ".vscode/**": true,
+        "/dist/**": true, // i dont want to serach through the js i compile
+        "deno.jsonc": true,
+        "deno.lock": true,
+        "license": true,
+        ".gitignore": true,
+        "tsconfig.json": true,
+
+    },
+    "explorer.excludeGitIgnore": false
+}

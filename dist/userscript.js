@@ -3,7 +3,7 @@
 // @namespace       Grifmin-GTweaks-V2
 // @match           *://*shellshock.io/*
 // @run-at          document-start
-// @version         12.28.2025
+// @version         1.10.2026
 // @author          Grifmin
 // @description     A work in progress. (if you get this somehow, just know its not complete)
 // @updateURL       https://raw.githubusercontent.com/Grifmin/egg_game/refs/heads/master/dist/userscript.js
@@ -123,6 +123,7 @@
     constructor(items, options) {
       Object.assign(this, { items, options });
     }
+    /** This is the main interface that the Fuse class uses to search with */
     search(input) {
       input = this.options.isCaseSensitive ? input : input.toLowerCase();
       const ItemsFlattened = searchFunctions.map((searchFunc) => searchFunc(input, this.items, this.options)).flat();
@@ -130,7 +131,14 @@
       return Object.entries(items).map(([key, item]) => ({ item }));
     }
   };
-  var description = "This extension provides an alternative searching method for the inventory. \nCompletely optional though. \nFeel free to request improvements for the alternative search extension!";
+  var description = (
+    /**@trim */
+    `
+This extension provides an alternative searching method for the inventory. 
+Completely optional though. 
+Feel free to request improvements for the alternative search extension!
+`.trim()
+  );
   var originalFuse;
   var state;
   function redefine() {
@@ -160,7 +168,6 @@
       redefine();
     },
     config() {
-      this.settings;
       return [{ type: "Toggle", label: "Enable", value: this.settings.enabled }];
     },
     onOptionsChange(updatedstate) {
@@ -253,7 +260,6 @@
           clearInterval(interval);
           return reject(`Timed out, waited for - ${maxTimeout}ms`);
         }
-        ;
         if (!condition()) return;
         clearInterval(interval);
         resolve();
@@ -275,7 +281,8 @@
     get(target, flags) {
       if (flags == "name") return target;
       const charsValid = flags.split("").every((char) => validCharacters.includes(char));
-      if (!charsValid) throw new PatternMatchFailed(`"${flags}" includes invalid characters. valid characters: ${validCharacters}`);
+      if (!charsValid)
+        throw new PatternMatchFailed(`"${flags}" includes invalid characters. valid characters: ${validCharacters}`);
       return (strings, ...values) => {
         return regexTemplate(flags, strings, ...values);
       };
@@ -354,7 +361,13 @@
   });
   var addChatRewrite = createSourceMod({
     name: "addChat rewrite",
-    description: "a re written version of the addChat function.\nDisplay filtered messages, patches potential RCE bug (yes i reported it back in 1.15.2024)",
+    description: (
+      /**@trim */
+      `
+	a re written version of the addChat function.
+	Display filtered messages, patches potential RCE bug (yes i reported it back in 1.15.2024)
+	`
+    ),
     version: "10.31.25",
     modify: function(source) {
       `function ([\\w$_]+)\\((?:(?:[\\w$_]+),?){5}\\){const [\\w$_]+=[\\w$_]+\\.querySelectorAll\\("\\.chat-item`;
@@ -400,7 +413,147 @@
         players: playerList,
         meId
       });
-      const newFunc = `function ${addChatName} (message, flags, playerId, custom_click_callback, formatter) {  let chatItems = ${chatOutEl}.querySelectorAll(".chat-item");  if (!message) {  /* this is scuffed, but this is accurate to the vanilla function...*/  if (!flags & ${pinned}) return;  for (let chat of chatItems) {  if (!chat.classList.contains("chat-pinned-item")) return;  chat.remove();  }  }  let chatItem = document.createElement("div");  let playerMsgSpan   = document.createElement("span");  let playerInfoDiv   = document.createElement("div");  let playerNameSpan  = document.createElement("span");  let socialIcon   = document.createElement("i");  let hasUpgrade   = false;  let SocialBadge  = false;  let uniqueId = false;  chatItem.classList.add("chat-item");  playerInfoDiv.style.display = "inline-block";  /* i dont like this if statement tbh, but i guess its fine for now. (replicate first, before modification)*/  if (playerId > 253) {  if (playerId == 255) {  playerNameSpan.textContent = "SERVER: ";  playerInfoDiv.style.color = "#ff0";  } else if (playerId == 254) {  playerNameSpan.textContent = "MOD: ";  playerInfoDiv.style.color = "#0f0";  }  playerNameSpan.classList.add("chat-player-name", "ss_marginright_xs");  playerInfoDiv.appendChild(playerNameSpan);  } else {  let player = ${playerList}[playerId];   /* here they are "purifying" the text to remove any <asdf>. but why innerHTML */  ${safediv}.innerHTML = message;  message = ${safediv}.textContent.trim();  const condition = ( playerId === ${meId} || ((!(player?.muted ?? true) && message.length)) ); /* updated (better) condition*/  /*const condition = ( playerId === ${meId} ||  (  playerId !== null &&   player &&   !player.muted &&   message.length > 0 &&   message.indexOf("<")   )  )*/  /* rewrite "condition" var as its not an actual declared variable? */  if (condition) {  /* hasUpgrade = !!(player.upgradeProductId && player.upgradeProductId > 0)  bruh */  hasUpgrade = (player?.upgradeProductId > 1);  SocialBadge = ${parseSocial}(player.social);  if (SocialBadge && !player.hideBadge) {  socialIcon.classList.add("fab", SOCIALMEDIA[SocialBadge.id]);  /*  should SOCIALMEDIA be dynamic? ^ it is a const in index.html*/  socialIcon.classList.add("ss_marginright_xs");  } else if (hasUpgrade && !player.hideBadge) {  socialIcon.classList.add("fas", "fa-egg", "hidden", "text_gold", "vip-egg");  socialIcon.classList.add("ss_marginright_xs");  }  uniqueId = player.${uniqueId};  playerNameSpan.classList.add("chat-player-name", "ss_marginright_xs");  playerNameSpan.textContent = player.name + ": ";  /* console.log(player.name, message); stawp it console logging :(*/  if (flags & ${team}) {  playerMsgSpan.style.color = ${teamColors}.text[player.team];  playerMsgSpan.classList.add("chat-team");  }  playerInfoDiv.style.color = ${teamColors}.text[player.team];  playerInfoDiv.appendChild(socialIcon);  playerInfoDiv.appendChild(playerNameSpan);  } else if (playerId !== null) {  return; /* this *should* never happen.*/  }  } /* playerMsgSpan.innerHTML = message; - disabling due to html injection concerns*/  playerMsgSpan.textContent = message;   if (playerId < 253 && ${isBadWord}(message)) {   playerMsgSpan.classList.add('addChatfiltered')   }  if (formatter) {  playerMsgSpan.innerHTML = playerMsgSpan.innerHTML.format(formatter)   /** this *does* re introduce the html injection concerns. however this should only ever be called internally (ie: share link popup)   * ^ this is neat. could be used for custom elements in html :eyes: maybe even :emoji:   */  }  if (flags & ${pinned}) {  playerMsgSpan.classList.add("chat-pinned");  chatItem.classList.add("chat-pinned-item");  }  chatItem.appendChild(playerInfoDiv);  chatItem.appendChild(playerMsgSpan);  chatItem.classList.add("clickme");  chatItem.onclick = () => {  if (!uniqueId && custom_click_callback) {  custom_click_callback();  /*} else if (playerId != ${myPlayer}.id) {*/   } else {  playerNameSpan.classList.add("clickme");  ${askClosure}(uniqueId, SocialBadge, hasUpgrade)();  }  };  ${chatOutEl}.appendChild(chatItem);   if (${chatOutEl}) { ${chatOutEl}.scroll({top: ${chatOutEl}.scrollHeight});   }  }`;
+      const newFunc = (
+        /*js*/
+        `function ${addChatName} (message, flags, playerId, custom_click_callback, formatter) {
+        let chatItems = ${chatOutEl}.querySelectorAll(".chat-item");
+        if (!message) {
+            /* this is scuffed, but this is accurate to the vanilla function...*/
+            if (!flags & ${pinned}) return;
+            for (let chat of chatItems) {
+                if (!chat.classList.contains("chat-pinned-item")) return;
+                chat.remove();
+            }
+        }
+
+        let chatItem        = document.createElement("div");
+        let playerMsgSpan   = document.createElement("span");
+        let playerInfoDiv   = document.createElement("div");
+        let playerNameSpan  = document.createElement("span");
+        let socialIcon      = document.createElement("i");
+
+        let hasUpgrade      = false;
+        let SocialBadge     = false;
+        let uniqueId        = false;
+
+        chatItem.classList.add("chat-item");
+        playerInfoDiv.style.display = "inline-block";
+
+        /* i dont like this if statement tbh, but i guess its fine for now. (replicate first, before modification)*/
+        if (playerId > 253) {
+            if (playerId == 255) {
+                playerNameSpan.textContent = "SERVER: ";
+                playerInfoDiv.style.color = "#ff0";
+            } else if (playerId == 254) {
+                playerNameSpan.textContent = "MOD: ";
+                playerInfoDiv.style.color = "#0f0";
+            }
+            playerNameSpan.classList.add("chat-player-name", "ss_marginright_xs");
+            playerInfoDiv.appendChild(playerNameSpan);
+        } else {
+            let player = ${playerList}[playerId];
+            
+            /* here they are "purifying" the text to remove any <asdf>. but why innerHTML */
+            ${safediv}.innerHTML = message;
+            message = ${safediv}.textContent.trim();
+
+            const condition = ( playerId === ${meId} || ((!(player?.muted ?? true) && message.length)) );
+			/* updated (better) condition*/
+            /*const condition = ( playerId === ${meId} ||
+                (
+                    playerId !== null && 
+                    player && // (sometimes it gives a incorrect Idx and player var is null)
+                    !player.muted && // you can just do !player?.muted instead of this ^ (rewrite later)
+                    message.length > 0 &&
+                    // !${isBadWord}(message) && // no chat filter please :eyes:
+                    message.indexOf("<") // btw. wtf is this for??
+                )
+            )*/
+            /* rewrite "condition" var as its not an actual declared variable? */
+            if (condition) {
+                /* hasUpgrade = !!(player.upgradeProductId && player.upgradeProductId > 0)  bruh */
+                hasUpgrade = (player?.upgradeProductId > 1);
+                SocialBadge = ${parseSocial}(player.social);
+
+                if (SocialBadge && !player.hideBadge) {
+                    socialIcon.classList.add("fab", SOCIALMEDIA[SocialBadge.id]);
+                    /*  should SOCIALMEDIA be dynamic? ^ it is a const in index.html*/
+                    socialIcon.classList.add("ss_marginright_xs");
+                } else if (hasUpgrade && !player.hideBadge) {
+                    socialIcon.classList.add("fas", "fa-egg", "hidden", "text_gold", "vip-egg");
+                    socialIcon.classList.add("ss_marginright_xs");
+                }
+                uniqueId = player.${uniqueId};
+                playerNameSpan.classList.add("chat-player-name", "ss_marginright_xs");
+                playerNameSpan.textContent = player.name + ": ";
+                /* console.log(player.name, message); stawp it console logging :(*/
+                if (flags & ${team}) {
+                    playerMsgSpan.style.color = ${teamColors}.text[player.team];
+                    playerMsgSpan.classList.add("chat-team");
+                }
+                playerInfoDiv.style.color = ${teamColors}.text[player.team];
+                playerInfoDiv.appendChild(socialIcon);
+                playerInfoDiv.appendChild(playerNameSpan);
+
+            } else if (playerId !== null) {
+                return; /* this *should* never happen.*/
+            }
+        }
+        // if (chatItems.length > 4) {
+        //     if (chatItems[0].classList.contains("chat-pinned-item")) {
+        //         if (flags & ${pinned}) {
+        //             chatItems[0].remove();
+        //         } else {
+        //             chatItems[1].remove();
+        //         }
+        //     } else {
+        //         chatItems[0].remove();
+        //     }
+        // }
+        /* playerMsgSpan.innerHTML = message; - disabling due to html injection concerns*/
+        playerMsgSpan.textContent = message; // add text content
+        if (playerId < 253 && ${isBadWord}(message)) {
+            // playerMsgSpan.style.color = 'RED'; 
+			playerMsgSpan.classList.add('addChatfiltered')
+            // just showing that its chat filtered for now :blobshrug:
+        }
+
+        if (formatter) {
+            playerMsgSpan.innerHTML = playerMsgSpan.innerHTML.format(formatter) 
+            /** this *does* re introduce the html injection concerns. however this should only ever be called internally (ie: share link popup)
+             * ^ this is neat. could be used for custom elements in html :eyes: maybe even :emoji:
+             */
+        }
+        if (flags & ${pinned}) {
+            playerMsgSpan.classList.add("chat-pinned");
+            chatItem.classList.add("chat-pinned-item");
+        }
+        chatItem.appendChild(playerInfoDiv);
+        chatItem.appendChild(playerMsgSpan);
+
+        chatItem.classList.add("clickme");
+        chatItem.onclick = () => {
+            if (!uniqueId && custom_click_callback) {
+                custom_click_callback();
+            /*} else if (playerId != ${myPlayer}.id) {*/ 
+			// no thanks. i would like to click myself
+            } else {
+                playerNameSpan.classList.add("clickme");
+                ${askClosure}(uniqueId, SocialBadge, hasUpgrade)();
+            }
+        };
+        ${chatOutEl}.appendChild(chatItem);
+        // if (${ChatContainer}) {
+			// ${ChatContainer}.scrollTop = ${ChatContainer}.scrollHeight;
+		if (${chatOutEl}) {
+			// auto scrolling down (how nice)
+			// ${chatOutEl}.parentElement.scroll({top: ${chatOutEl}.parentElement.scrollHeight});
+			${chatOutEl}.scroll({top: ${chatOutEl}.scrollHeight}); // doesnt work
+			
+        }
+
+    }`
+      );
       return source.replace(funcsrc, newFunc);
     }
   });
@@ -425,7 +578,74 @@
       const observeAndmeIdRe = re.gm`([\\w$_]+)\\|\\|${addChat}\\([\\w$_]+,[\\w$_]+,([\\w$_]+)\\)`;
       const [, observingGame, meId] = execOrThrow(observeAndmeIdRe, funcSrc);
       const [, sendMessageWS] = execOrThrow(/indexOf\("<"\)<0\){([\w$_]+)/gm, funcSrc, "sendMessageWS");
-      const replacementFunctionSource = `function(event) { const { key } = (event || window.event); ${chatInEl}.value = ${fixStringWidth}(${chatInEl}.value, 280);  let text = ${chatInEl}.value.trim();  switch (key) { case "Enter": if ('' != text && text.indexOf('<') < 0) { ${sendMessageWS}(text); let addChatFlags = ((text) => { if (!text.startsWith('/')) return ${chatFlags$none}; const textArg1 = text.slice(1).split(' '); switch (key) { case 't': case 'team': return textArg1[1] ? ${isTeamsMode} ? ${chatFlags$teams} : ${chatFlags$none} : null; case "p": case "pin": return ${isGameOwner} ? ${chatFlags$pinned} : ${chatFlags$none}; default: return ${chatFlags$none}; } })(text);  if (addChatFlags != ${chatFlags$none}) { text = ((text) => { let textSplit = text.split(' '); return text.slice(textSplit[0].length + 1); })(text);  } if (!${observingGame}) { ${addChat}(text, addChatFlags, ${meId}); } if (${clientPerms}.adminRoles && !${isGameOwner}) { player.chatLines++; if (player.chatLines > 2) { ${chatInEl}.style.visibility = 'hidden'; } }; ${chatEvents}++; if (${chatEvents} === 1) { /*ga('send', 'event', 'game', 'stats', 'chat', ${chatEvents});*/ } } case "Tab": event.preventDefault(); event.stopPropagation(); if (key != 'Tab') { ${stopChat}(); }; } /*this is all my additions (fancy right) */ if (key.length == 1) { text += key; } else if (key == 'Backspace') { text = text.slice(0, text.length -1); } /*we defer a function to run nearly instantly after the function just incase we hit "enter" or something else happens idk */ setTimeout(() => { ${chatInEl}.style.color = ${isBadWord}(${chatInEl}.value) ? 'red' : ''; }, 1); ${chatInEl}.style.color = ${isBadWord}(text) ? 'red' : ''; }`.trim();
+      const replacementFunctionSource = (
+        /*js*/
+        `function(event) {
+			const { key } = (event || window.event);
+			${chatInEl}.value = ${fixStringWidth}(${chatInEl}.value, 280); // more filtering of course. 
+			let text = ${chatInEl}.value.trim(); // message (before anything is done)
+			// as to why we are using a switch instead of a if (['Enter', 'Tab'].includes(key)) ... im unsure
+			switch (key) {
+				case "Enter":
+					if ('' != text && text.indexOf('<') < 0) {
+						${sendMessageWS}(text);
+						let addChatFlags = ((text) => {
+							if (!text.startsWith('/')) return ${chatFlags$none};
+							const textArg1 = text.slice(1).split(' ');
+							switch (key) {
+								case 't':
+								case 'team':
+									return textArg1[1] ? ${isTeamsMode} ? ${chatFlags$teams} : ${chatFlags$none} : null;
+								case "p":
+								case "pin":
+									return ${isGameOwner} ? ${chatFlags$pinned} : ${chatFlags$none};
+								default:
+									return ${chatFlags$none};
+							}
+						})(text); // yea they actually did this.
+						if (addChatFlags != ${chatFlags$none}) {
+							text = ((text) => {
+								let textSplit = text.split(' ');
+								return text.slice(textSplit[0].length + 1);
+							})(text); // this strips the command from the text for the addChat func
+							// as to why exactly the made this a function :blobshrug:
+						}
+						if (!${observingGame}) {
+							${addChat}(text, addChatFlags, ${meId});
+						}
+						if (${clientPerms}.adminRoles && !${isGameOwner}) {
+							player.chatLines++;
+							if (player.chatLines > 2) {
+								${chatInEl}.style.visibility = 'hidden';
+							}
+						};
+						${chatEvents}++;
+						if (${chatEvents} === 1) {
+							/*ga('send', 'event', 'game', 'stats', 'chat', ${chatEvents});*/
+						}
+					}
+				case "Tab":
+					event.preventDefault();
+					event.stopPropagation();
+					if (key != 'Tab') {
+						${stopChat}();
+					};
+			}
+			/*this is all my additions (fancy right) */
+			if (key.length == 1) {
+				text += key;
+			} else if (key == 'Backspace') {
+				text = text.slice(0, text.length -1);
+			}
+			/*we defer a function to run nearly instantly after the function just incase we hit "enter" or something else happens idk */
+			setTimeout(() => {
+				/*${chatInEl}.style.color = ${isBadWord}(${chatInEl}.value) ? 'red' : '';*/
+				${chatInEl}.classList[ ${isBadWord}(${chatInEl}) ? 'add' : 'remove' ]('addChatfiltered');
+				// i decided i'd use the classList so that others can intercept / overwrite my theme stuff. idk
+			}, 1);
+			${chatInEl}.style.color = ${isBadWord}(text) ? 'red' : '';
+		}`.trim()
+      );
       return source.replace(funcSrc, replacementFunctionSource);
     }
   });
@@ -462,7 +682,29 @@
         inGame
       };
       addMappings(vars);
-      const newFunc = `function ${setRespawnTime} (sec, decimals = 1, FATSec = 1200) {  ${respawnTime} = Math.max(sec, ${respawnTime});  /* ^ set the new respawntime (if needed)*/  if (${respawnInterval}) clearInterval(${respawnInterval});  /* vueApp.game.respawnTime = ${respawnTime}.toFixed(decimals); */  ${respawnInterval} = setInterval(() => {  ${respawnTime} = Number((${respawnTime} - (1 / (decimals * 10))).toFixed(decimals));  /* vueApp.game.respawnTime = Math.min(${respawnTime}, 5); */  vueApp.game.respawnTime = ${respawnTime}.toFixed(decimals);  /* ^ shitty work around. for some reason it gets turned into a string?*/  if (${respawnTime} <= 0 && ${inGame}) {  ${respawnTime} = -1;  clearInterval(${respawnInterval});  ${PrepRespawnAd}();  /* ^is this really needed? */  ${doMapOverviewCamera}();  }  }, Math.floor(FATSec / (decimals * 10))); /* why is this 1.2sec instead of 1sec? */   }`;
+      const newFunc = (
+        /*js*/
+        `function ${setRespawnTime} (sec, decimals = 1, FATSec = 1200) {
+        ${respawnTime} = Math.max(sec, ${respawnTime}); 
+		/* ^ set the new respawntime (if needed)*/
+        if (${respawnInterval}) clearInterval(${respawnInterval});
+        /* vueApp.game.respawnTime = ${respawnTime}.toFixed(decimals); */
+		
+        ${respawnInterval} = setInterval(() => {
+            ${respawnTime} = Number((${respawnTime} - (1 / (decimals * 10))).toFixed(decimals));
+            /* vueApp.game.respawnTime = Math.min(${respawnTime}, 5); */
+            vueApp.game.respawnTime = ${respawnTime}.toFixed(decimals); 
+			/* ^ shitty work around. for some reason it gets turned into a string?*/
+            if (${respawnTime} <= 0 && ${inGame}) {
+                ${respawnTime} = -1;
+                clearInterval(${respawnInterval});
+                ${PrepRespawnAd}(); // is this really needed
+				/* ^is this really needed? */
+                ${doMapOverviewCamera}();
+            }
+        }, Math.floor(FATSec / (decimals * 10))); /* why is this 1.2sec instead of 1sec? */
+    	}`
+      );
       (async () => {
         await WaitForCondition(() => vueApp?.$refs?.gameScreen);
         const dis = vueApp.$refs.gameScreen;
@@ -524,7 +766,17 @@
       const patt = /(([\w$_]+)=([\w$_]+)\.set\(\((function\(\){var ([\w$_]+)=[\w$_]+\.getBuffer\(\);\5\.[\w$_]+\([\w$_\.]+\),\5\.send.*?)\),(?:15e3|15000)\))/gm;
       const [, keepAlivePoint, , , keepAliveCallback] = execOrThrow(patt, source, "");
       source = source.replace(keepAlivePoint, `void 69420/*${keepAlivePoint}*/`);
-      const EmbedFunctionLogic = `(()=>{ setInterval(() => { const ingameCondition = (vueApp?.ui?.game?.spectate || vueApp?.game?.isPaused) && vueApp?.game?.on; if (!ingameCondition) return;  (${keepAliveCallback})();  }, 15_000) })()`;
+      const EmbedFunctionLogic = (
+        /*js*/
+        `(()=>{
+			setInterval(() => {
+				const ingameCondition = (vueApp?.ui?.game?.spectate || vueApp?.game?.isPaused) && vueApp?.game?.on;
+				if (!ingameCondition) return; // my condition sofar
+				// todo: add in a second condition to check if the player is ingame ie: check playingState (need wrappres / more advanced mappings)
+				(${keepAliveCallback})(); // call the keepAliveFunction (wrapper)
+			}, 15_000)
+		})()`
+      );
       const embedPattern = /(window\.extern)/gm;
       return source.replace(embedPattern, `${EmbedFunctionLogic};$1`);
     }
@@ -580,14 +832,16 @@
   }
   function attemptSourceMod(sourceMod, currentSource) {
     const specifiedMappings = getFullSourceMappings(sourceMod);
+    const LoadState = { disabled: !!sourceMod.disabled };
+    if (LoadState.disabled) return LoadState;
     try {
-      const newSource = sourceMod.modify(currentSource, specifiedMappings);
+      const newSource = LoadState.source = sourceMod.modify(currentSource, specifiedMappings);
       const result = validateSourceCode(newSource);
       if (result instanceof Error) throw result;
-      return newSource;
     } catch (err) {
-      return err;
+      LoadState.error = err;
     }
+    return LoadState;
   }
   function CoreLoader(originalSource, sourceMods = SourceMods, iteration = 0, maxIteration = sourceMods.length) {
     let modifiedSource = originalSource;
@@ -597,15 +851,18 @@
       const sourceModStart = performance.now();
       const result = attemptSourceMod(sourceMod, modifiedSource);
       const sourceModDuration = (performance.now() - sourceModStart).toFixed(2);
-      if (result instanceof Error) {
+      if (result.error) {
         const errormessage = `Loading sourcemod ${sourceMod.name} %c${sourceModDuration}%cms - `;
-        debugError(errormessage, css.number, "", result.message);
+        debugError(errormessage, css.number, "", result.error.message);
         continue;
-      } else if (!result) {
+      } else if (result.disabled) {
+        debugWarn(`Source Modification ${sourceMod.name} disabled.`);
+        continue;
+      } else if (!result.source) {
         debugWarn(`Source Modification ${sourceMod.name} didnt return type string`, { result });
         continue;
       }
-      modifiedSource = result;
+      modifiedSource = result.source;
       debugInfo(`Source Modification ${sourceMod.name} %c${sourceModDuration}%cms`, css.number, "");
     }
     if (skippedMods.length || iteration > 0) {
@@ -639,45 +896,70 @@
     };
     attemptDefineModloader();
   }
-  var description2 = "Modifies the game's internal source code on load in.\nToggling mods not implemented as of yet. (as i cbf)".trim();
+  var initialModSettings;
+  var baseLabel = "Enable Game Modifications (the base setting)";
+  var description2 = (
+    /**@trim */
+    `
+Modifies the game's internal source code on load in.
+Toggling mods not implemented as of yet. (as i cbf)
+`.trim()
+  );
   var Extension2 = createExtension({
     uniqueIdentifier: "Grifmin-SourceExtensions",
     iconUrl: "",
     name: "Source Extension Loader",
     author: "Grifmin",
-    version: "0.1 alpha",
+    version: "0.2 alpha",
     // yea this is alpha until I find a more consistant / stable way to implemnent this
     description: description2,
-    defaultSettings: { enabled: true, modStates: {} },
-    // yes, by default I intend on extending the source
+    defaultSettings: { enabled: false, modStates: {} },
+    // decided to disable by default. (forces user choice. plus its a mitigation against softlocks)
     config() {
-      const configOptions = [
-        { type: "Toggle", label: "Enable Game Modification", value: this.settings.enabled }
-      ];
-      for (const mod of SourceMods) {
-        const individualModOptions = { type: "Toggle", label: `${mod.name} - toggle`, value: this.settings.modStates[mod.name] ?? true };
+      const configOptions = [{ type: "Toggle", label: baseLabel, value: this.settings.enabled }];
+      for (const { name } of SourceMods) {
+        let state2 = this.settings.modStates[name];
+        if (state2 == void 0) state2 = true;
+        const individualModOptions = { type: "Toggle", label: `${name} - toggle`, value: state2 };
         configOptions.push(individualModOptions);
       }
       return configOptions;
     },
     init: function() {
+      initialModSettings = JSON.parse(JSON.stringify(this.settings));
       if (this.settings.enabled == false) return;
+      for (let [modName, enabled] of Object.entries(this.settings.modStates)) {
+        if (enabled == void 0) enabled = true;
+        const mod = SourceMods.find((mod2) => mod2.name == modName);
+        if (mod) Object.assign(mod, { disabled: !enabled });
+      }
       ApplySourceInterception();
     },
     onOptionsChange(updatedState) {
       if (updatedState.type != "Toggle") return false;
-      debugWarn(`${this.name} - window refresh request. - Grif fix this you lazy bastard.`);
-      if (updatedState.label == "Enable Game Modification") {
+      if (updatedState.label == baseLabel) {
         this.settings.enabled = updatedState.value;
         return updatedState.value;
       }
-      const targetMod = SourceMods.find((mod) => updatedState.label?.includes(mod.name));
-      if (!targetMod) return false;
-      this.settings.modStates[targetMod.name] = false;
+      const modName = updatedState.label?.replace(" - toggle", "");
+      const targetMod = SourceMods.find((mod) => mod.name == modName);
+      if (!targetMod) {
+        debugWarn(`Unable to find target mod to toggle the state of with ${updatedState.label}?`);
+        return false;
+      }
+      const newState = this.settings.modStates;
+      newState[modName] = !newState[modName];
+      this.settings.modStates = newState;
       return updatedState.value;
     },
     isEnabled() {
       return this.settings.enabled;
+    },
+    requestRefresh() {
+      const enabledStateMatches = this.settings.enabled == initialModSettings.enabled;
+      const initialModStates = initialModSettings.modStates;
+      const modStatesMatch = Object.entries(this.settings.modStates).every(([key, value]) => initialModStates[key] == value);
+      return !enabledStateMatches || !modStatesMatch;
     }
   });
 
@@ -720,7 +1002,14 @@
       throw err;
     }
   }
-  var description3 = "Protects various js Object prototypes. (useful when attempting to mitigate egg games various anti modding approaches)".trim();
+  var initialLoadCondition;
+  var description3 = (
+    /**@trim */
+    `
+Protects various js Object prototypes. (useful when attempting to mitigate egg games various anti modding approaches)
+This could cause some incompatibility with other mods. (as it attempts to protect internal variables)
+`.trim()
+  );
   var Extension3 = createExtension({
     uniqueIdentifier: `Grifmin-Protec`,
     defaultSettings: { enabled: true },
@@ -732,17 +1021,20 @@
       return [{ type: "Toggle", label: "Enable", value: this.settings.enabled }];
     },
     init() {
+      initialLoadCondition = this.settings.enabled;
       if (!this.settings.enabled) return;
       Protect();
     },
     onOptionsChange(updatedState) {
       if (updatedState.type != "Toggle") return false;
       this.settings.enabled = updatedState.value;
-      debugWarn(`${this.name} - window refresh request. - Grif fix this you lazy bastard.`);
       return updatedState.value;
     },
     isEnabled() {
       return this.settings.enabled;
+    },
+    requestRefresh() {
+      return initialLoadCondition != this.settings.enabled;
     }
   });
 
@@ -777,12 +1069,10 @@
       document.addEventListener(
         "DOMContentLoaded",
         () => {
-          getDiv().then(
-            (ThemeDiv2) => {
-              ThemeDiv2.append(styleElement);
-              this.themes[identifier] = styleElement;
-            }
-          );
+          getDiv().then((ThemeDiv2) => {
+            ThemeDiv2.append(styleElement);
+            this.themes[identifier] = styleElement;
+          });
         },
         { once: true }
       );
@@ -790,14 +1080,8 @@
     }
   };
 
-  // css:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\Client/default.css
-  var default_default = `/* this is just a safety precaution. it shouldnt ever be visible, but just incase im going to ensure it is */
-.firebaseID {
-	visibility: hidden !important;
-	display: none !important;
-	opacity: 0 !important; /* these 3 should be enough for it to never be accidentally revealed */
-}
-`;
+  // src/extensions/Client/default.css
+  var default_default = "/* this is just a safety precaution. it shouldnt ever be visible, but just incase im going to ensure it is */\n.firebaseID {\n	visibility: hidden !important;\n	display: none !important;\n	opacity: 0 !important; /* these 3 should be enough for it to never be accidentally revealed */\n}\n";
 
   // src/extensions/Client/index.ts
   var startTime = Date.now();
@@ -853,201 +1137,17 @@
     addDefaultCss();
   }
 
-  // css:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\modmenu/modmenu.css
-  var modmenu_default = `/*
-neat notes i found: 
-1em = 1.375em (roughly) 
-Also i'd like to say, i pretty much got chatgpt to generate all of this css (because i hate dealing with css).
-so at somepoint, I will need to go back through all of this with a fine comb and work out the kinks
-using \`px\` I know is very bad (especially for consistancy)
-*/
+  // src/extensions/modmenu/modmenu.css
+  var modmenu_default = "/*\nneat notes i found: \n1em = 1.375em (roughly) \nAlso i'd like to say, i pretty much got chatgpt to generate all of this css (because i hate dealing with css).\nso at somepoint, I will need to go back through all of this with a fine comb and work out the kinks\nusing `px` I know is very bad (especially for consistancy)\n*/\n\n.modmenu-screen {\n	display: flex;\n	justify-content: center;\n	align-items: center;\n	min-height: 100vh;\n}\n\n.mod-menu-refreshBtn {\n	background-color: orange;\n}\n\n.modmenu-page-content {\n	height: calc(100vh - 10em);\n	width: 100%;\n	border: var(--ss-common-border-width) solid var(--ss-blue5);\n	background-color: var(--ss-blue6) !important;\n	border-radius: .9375em;\n	box-shadow: 0 .5em 1.5em rgba(0, 0, 0, 0.4);\n	position: relative;\n	/* padding: 1.25em; */\n	overflow: hidden; /* no escaping my box please */\n}\n.modmenu-title {\n	position: absolute;\n	right: 50%;\n}\n\n.modmenu-header {\n    padding: .5em;\n    width: 100%;\n	height: 20%;\n    box-sizing: border-box;\n}\n\n.mod-screen-content {\n	display: flex;\n	height: 100%;\n	overflow: hidden;\n}\n\n/* mod menu list */\n.mod-list {\n    display: flex;\n	flex: 0 0 30%;\n    flex-direction: column;\n	max-width: 30%;\n	overflow-y: auto;\n	overflow-x: hidden;\n	max-height: 85%;\n	border-radius: .5em;\n	box-shadow: inset 0 -.5em .625em -.375em rgba(0, 0, 0, 0.4);\n    gap: .25em;\n    height: 80%;\n    padding: .5em;\n}\n\n.mod-item {\n	border-radius: .625em;\n	border: var(--ss-common-border-width) solid var(--ss-blue5);\n	display: flex;\n	padding: .3125em;\n	/* transition: background 0.3s ease; */\n}\n.mod-item .mod-icon {\n    flex-shrink: 0;\n}\n\n.mod-item:nth-child(odd) {\n	background-color: var(--ss-blue3);\n}\n\n.mod-item:nth-child(even) {\n	background-color: #77cbe6;\n}\n\n.mod-icon {\n	width: 6em;\n	height: 6em;\n	margin-right: .5em;\n	border-radius: .5em;\n}\n\n.mod-info .name {\n    font-weight: bold;\n    font-size: 1.2em;\n    color: white;\n}\n\n.mod-info .author {\n    font-weight: bold;\n    font-size: 1em;\n    margin-bottom: .3125em;\n    color: #924eff;\n}\n\n.mod-info {\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    max-width: 100%;\n}\n\n.mod-details {\n	display: flex;\n	flex: 1;\n	flex-direction: column;\n	padding: .5em;\n    padding-bottom: 1.5em; /* this is to prevent the description from overflowing */\n	max-height: 85%;\n    height: 85%;\n	overflow: hidden;\n}\n\n.mod-select-header {\n	display: flex;\n	align-items: center;\n	gap: .625em;\n	position: relative;\n}\n\n.mod-desc {\n	font-size: 1em;\n	line-height: 1.4;\n	white-space: pre-line;\n}\n\n.mod-config {\n	margin-bottom: 1em;\n}\n\n/* this is shared between the two */\n.mod-config, .mod-desc {\n	/* border: red solid; */\n	border: var(--ss-common-border-width) solid var(--ss-blue5);\n	background-color: var(--ss-blue2);\n	border-radius: .25em;\n	margin-top: .625em;\n	padding: .625em;\n	overflow-y: auto;\n	flex: 1;\n}\n/* this fixes the labels being difficult to read on the config page */\n.mod-config label {\n	font-weight: 600;\n	display: flex;\n	flex-direction: row-reverse;\n	justify-content: left;\n}\n\n.mod-config-button {\n	height: 2.125em;\n	width: 9em;\n	text-align: center;\n	position: absolute;\n	right: 0em;\n	bottom: 0em;\n}\n\n.controls label {\n	display: block;\n	margin: .3125em 0;\n}\n\n/* Responsive adjustments */\n@media (max-width: 37.5em) {\n	.modmenu-page-content {\n		max-width: 95%;\n		padding: .625em;\n	}\n\n	.mod-item {\n		flex-direction: column;\n		align-items: stretch;\n	}\n\n	.mod-icon {\n		align-self: center;\n		margin-bottom: .625em;\n		margin-right: 0;\n	}\n}\n";
 
-.modmenu-screen {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	min-height: 100vh;
-}
-
-.modmenu-page-content {
-	height: calc(100vh - 10em);
-	width: 100%;
-	border: var(--ss-common-border-width) solid var(--ss-blue5);
-	background-color: var(--ss-blue6) !important;
-	border-radius: .9375em;
-	box-shadow: 0 .5em 1.5em rgba(0, 0, 0, 0.4);
-	position: relative;
-	/* padding: 1.25em; */
-	overflow: hidden; /* no escaping my box please */
-}
-.modmenu-title {
-	position: absolute;
-	right: 50%;
-}
-
-.modmenu-header {
-    padding: .5em;
-    width: 100%;
-	height: 20%;
-    box-sizing: border-box;
-}
-
-.mod-screen-content {
-	display: flex;
-	height: 100%;
-	overflow: hidden;
-}
-
-/* mod menu list */
-.mod-list {
-    display: flex;
-	flex: 0 0 30%;
-    flex-direction: column;
-	max-width: 30%;
-	overflow-y: auto;
-	overflow-x: hidden;
-	max-height: 85%;
-	border-radius: .5em;
-	box-shadow: inset 0 -.5em .625em -.375em rgba(0, 0, 0, 0.4);
-    gap: .25em;
-    height: 80%;
-    padding: .5em;
-}
-
-.mod-item {
-	border-radius: .625em;
-	border: var(--ss-common-border-width) solid var(--ss-blue5);
-	display: flex;
-	padding: .3125em;
-	/* transition: background 0.3s ease; */
-}
-.mod-item .mod-icon {
-    flex-shrink: 0;
-}
-
-.mod-item:nth-child(odd) {
-	background-color: var(--ss-blue3);
-}
-
-.mod-item:nth-child(even) {
-	background-color: #77cbe6;
-}
-
-.mod-icon {
-	width: 6em;
-	height: 6em;
-	margin-right: .5em;
-	border-radius: .5em;
-}
-
-.mod-info .name {
-    font-weight: bold;
-    font-size: 1.2em;
-    color: white;
-}
-
-.mod-info .author {
-    font-weight: bold;
-    font-size: 1em;
-    margin-bottom: .3125em;
-    color: #924eff;
-}
-
-.mod-info {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-}
-
-.mod-details {
-	display: flex;
-	flex: 1;
-	flex-direction: column;
-	padding: .5em;
-    padding-bottom: 1.5em; /* this is to prevent the description from overflowing */
-	max-height: 85%;
-    height: 85%;
-	overflow: hidden;
-}
-
-.mod-select-header {
-	display: flex;
-	align-items: center;
-	gap: .625em;
-	position: relative;
-}
-
-.mod-desc {
-	font-size: 1em;
-	line-height: 1.4;
-	white-space: pre-line;
-}
-
-.mod-config {
-	margin-bottom: 1em;
-}
-
-/* this is shared between the two */
-.mod-config, .mod-desc {
-	/* border: red solid; */
-	border: var(--ss-common-border-width) solid var(--ss-blue5);
-	background-color: var(--ss-blue2);
-	border-radius: .25em;
-	margin-top: .625em;
-	padding: .625em;
-	overflow-y: auto;
-	flex: 1;
-}
-/* this fixes the labels being difficult to read on the config page */
-.mod-config label {
-	font-weight: 600;
-	display: flex;
-	flex-direction: row-reverse;
-	justify-content: left;
-}
-
-.mod-config-button {
-	height: 2.125em;
-	width: 9em;
-	text-align: center;
-	position: absolute;
-	right: 0em;
-	bottom: 0em;
-}
-
-.controls label {
-	display: block;
-	margin: .3125em 0;
-}
-
-/* Responsive adjustments */
-@media (max-width: 37.5em) {
-	.modmenu-page-content {
-		max-width: 95%;
-		padding: .625em;
-	}
-
-	.mod-item {
-		flex-direction: column;
-		align-items: stretch;
-	}
-
-	.mod-icon {
-		align-self: center;
-		margin-bottom: .625em;
-		margin-right: 0;
-	}
-}
-`;
-
-  // html:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\modmenu/modmenu_screen_template.html
+  // src/extensions/modmenu/modmenu_screen_template.html
   var modmenu_screen_template_default = `<div v-if="shouldDisplay" class="modmenu-screen">
 	<div class="sidebar modmenu-page-content roundme_sm ss_marginright bg_blue6 common-box-shadow">
 		<div class="modmenu-header bg_blue3">
 			<header class="f_row align-items-center modmenu-title">
 				<section>
 					<h1 class="text-shadow-black-40 text_white nospace">Mods</h1>
+					<h2 v-show="refreshRequested" class="mod-menu-refreshBtn ss_button" @click="location.reload()">Refresh Request</h2>
 				</section>
 			</header>
 			<aside class="'justify-self-end text-right">{{ mods.length }} mods</aside>
@@ -1082,7 +1182,7 @@ using \`px\` I know is very bad (especially for consistancy)
 							<p v-if="selectedMod.version">Version: {{ selectedMod.version}}</p>
 						</div>
 						<aside>
-							<button class="mod-config-button ss_button" @click="configurationSelected()" > {{ configButtonText }} </button>
+							<button v-if="selectedMod.config" class="mod-config-button ss_button" @click="configurationSelected()" > {{ configButtonText }} </button>
 						</aside>
 					</header>
 				</div>
@@ -1116,10 +1216,6 @@ using \`px\` I know is very bad (especially for consistancy)
     this.gameUiRemoveClassForNoScroll();
     extern.resetPaperDoll();
   }
-  function isReady() {
-    if (!("vueApp" in window) || !("Vue" in window)) return false;
-    return [Vue, Client.readyState, vueApp].every((value) => value);
-  }
   function updateVueApp() {
     if (vueData.screens.modmenu) return;
     Object.assign(vueApp, { switchToModMenuUi });
@@ -1134,7 +1230,11 @@ using \`px\` I know is very bad (especially for consistancy)
     });
   }
   async function WaitUntilSetup() {
-    await WaitForCondition(isReady).catch((reason) => debugError(`ModMenu isReady - ${reason}`));
+    function isReady2() {
+      if (!("vueApp" in window) || !("Vue" in window)) return false;
+      return [Vue, Client.readyState, vueApp].every((value) => value);
+    }
+    await WaitForCondition(isReady2).catch((reason) => debugError(`ModMenu isReady - ${reason}`));
     if (Client.vue) return debugInfo(`It seems the Mod Menu Vue instance is already mounted. `);
     Client.thememanager.addStyle(modmenu_default, "modmenu-css");
     const ModMenuScreen = Vue.extend({
@@ -1147,7 +1247,16 @@ using \`px\` I know is very bad (especially for consistancy)
           search: "",
           selectedMod: extensions.find((ext) => ext.name == ModMenuName),
           configuration: false,
-          mods: extensions
+          mods: extensions,
+          refreshDetected: () => {
+            function ModRequestedRefresh(mod) {
+              if (mod.requestRefresh && mod.requestRefresh()) {
+                return true;
+              }
+              return false;
+            }
+            return extensions.some(ModRequestedRefresh);
+          }
         };
       },
       /**
@@ -1158,7 +1267,7 @@ using \`px\` I know is very bad (especially for consistancy)
       computed: {
         /**@todo */
         refreshRequested() {
-          return false;
+          return this.refreshDetected();
         },
         /**this is to let it know when it should be displayed */
         shouldDisplay() {
@@ -1184,6 +1293,7 @@ using \`px\` I know is very bad (especially for consistancy)
       methods: {
         selectMod(mod) {
           this.selectedMod = mod;
+          mod.description = mod.description?.trim();
           this.configuration = false;
         },
         configurationSelected() {
@@ -1225,19 +1335,27 @@ using \`px\` I know is very bad (especially for consistancy)
     name: ModMenuName,
     author: "Grifmin",
     version: "0.3a",
-    description: "mod menu v2 implementation\nWork in progress",
+    description: (
+      /**@trim */
+      `
+	mod menu v2 implementation
+	Work in progress`.trim()
+    ),
     iconUrl: "url('https://media1.tenor.com/m/77rqMj3uomoAAAAd/gritito.gif)",
     // this is how i felt making this btw.
-    defaultSettings: {},
-    // no settings (this wont be togglable)
-    init: WaitUntilSetup,
-    config() {
-      return [
-        { type: "Toggle", label: "Test 1", value: true },
-        { type: "Toggle", label: "Test 2", value: false },
-        { type: "Slider", label: "Test slider", max: 100, min: 0, value: 50 }
-      ];
+    defaultSettings: { enabled: true },
+    // made this togglable via a manual entry. (incase some other mod comes up with a better mod menu or has some reason to hide this idk)
+    init() {
+      if (!this.settings.enabled) return;
+      WaitUntilSetup();
     },
+    // config() {
+    // 	return [
+    // 		{ type: "Toggle", label: "Test 1", value: true },
+    // 		{ type: "Toggle", label: "Test 2", value: false },
+    // 		{ type: "Slider", label: "Test slider", max: 100, min: 0, value: 50 },
+    // 	];
+    // },
     onOptionsChange(updateState) {
       debugDebug(`${this.name} - ${this.onOptionsChange?.name}: `, updateState);
       return false;
@@ -1303,6 +1421,7 @@ using \`px\` I know is very bad (especially for consistancy)
       get: () => internal_SCB
     });
   }
+  var originalSettings;
   var Extension4 = createExtension({
     uniqueIdentifier: "Grifmin-Tabkeyremap",
     name: "Tab Key Remap",
@@ -1316,6 +1435,7 @@ using \`px\` I know is very bad (especially for consistancy)
       return [{ type: "Toggle", label: Label, value: this.settings.enabled }];
     },
     init() {
+      originalSettings = JSON.parse(JSON.stringify(this.settings));
       if (!this.settings.enabled) return;
       addMod(SourceMod2);
       updateVueComp();
@@ -1329,39 +1449,17 @@ using \`px\` I know is very bad (especially for consistancy)
     },
     isEnabled() {
       return this.settings.enabled;
+    },
+    requestRefresh() {
+      const condition = originalSettings.enabled != this.settings.enabled;
+      return condition;
     }
   });
 
-  // css:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\reNotification/notification.css
-  var notification_default = `/* notifications stuff */
-#re-notification {
-	/* background: rgba(0, 0, 0, 0.25);
-	box-shadow: 0.1em 0.1em 0.4em rgba(0, 0, 0, 0.5);
-	padding: 0.75em; */
-	background-color: rgba(0, 0, 0, 0.15) !important;
-	border: 0.0625em solid rgba(0, 0, 0, 0.2) !important;
-	box-shadow: 0 .25em .5em rgba(0, 0, 0, 0.2) !important;
-	border-radius: 0.9375em !important;
-	padding: 0.9375em !important;
+  // src/extensions/reNotification/notification.css
+  var notification_default = "/* notifications stuff */\n#re-notification {\n	/* background: rgba(0, 0, 0, 0.25);\n	box-shadow: 0.1em 0.1em 0.4em rgba(0, 0, 0, 0.5);\n	padding: 0.75em; */\n	background-color: rgba(0, 0, 0, 0.15) !important;\n	border: 0.0625em solid rgba(0, 0, 0, 0.2) !important;\n	box-shadow: 0 .25em .5em rgba(0, 0, 0, 0.2) !important;\n	border-radius: 0.9375em !important;\n	padding: 0.9375em !important;\n\n	position: absolute;\n	color: white;\n	font-weight: bold;\n	/* color: var(--egg-brown); */\n	left: 75%;\n	top: 1em;\n	transform: translateX(-50%);\n	display: none;\n	text-align: left;\n}\n\n#re-notification img {\n	width: 2em;\n	height: 2em;\n	margin-right: 0.75em;\n}";
 
-	position: absolute;
-	color: white;
-	font-weight: bold;
-	/* color: var(--egg-brown); */
-	left: 75%;
-	top: 1em;
-	transform: translateX(-50%);
-	display: none;
-	text-align: left;
-}
-
-#re-notification img {
-	width: 2em;
-	height: 2em;
-	margin-right: 0.75em;
-}`;
-
-  // html:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\reNotification/notification.html
+  // src/extensions/reNotification/notification.html
   var notification_default2 = '<div id="re-notification" class="roundedBorder"></div>\n    <!--<img src="/img/notificationIcon.png"> -->\n    <!-- <img src="/favicon192.png"> -->\n    <!-- \n    ^ this is the closest image to the original\n    although, im not really a fan of it, so im going to remove it\n    -->\n    <div id="re-notificationMessage"></div>\n</div>';
 
   // src/extensions/reNotification/index.ts
@@ -1388,7 +1486,7 @@ using \`px\` I know is very bad (especially for consistancy)
     notifyDiv.style.display = "flex";
     notifyDiv.textContent = msg;
     let anim = 0;
-    let animIn = setInterval(() => {
+    const animIn = setInterval(() => {
       if (document.visibilityState == "hidden") return;
       anim++;
       notifyDiv.style.opacity = `${anim / 8}`;
@@ -1441,14 +1539,14 @@ using \`px\` I know is very bad (especially for consistancy)
 
   // src/extensions/vueCommas/index.ts
   var internalcomp_item;
-  function isReady2() {
+  function isReady() {
     return "Vue" in window;
   }
   function setupStatAlternative(stat) {
     if (this.stat.kdr !== void 0 && typeof stat != "number" && typeof stat[0] == "number") {
       return this.kdr(stat[0], stat[1]);
     } else if (stat && typeof stat != "number") {
-      let [first, second] = stat.map((v) => typeof v == "number" ? v.toLocaleString() : v);
+      const [first, second] = stat.map((v) => typeof v == "number" ? v.toLocaleString() : v);
       return `<div>${first}</div> <div>${second.toLocaleString()}</div>`;
     } else {
       return typeof stat == "number" ? stat.toLocaleString() : stat;
@@ -1461,7 +1559,7 @@ using \`px\` I know is very bad (especially for consistancy)
     return !this.isItemOwned ? this.item.price.toLocaleString() : this.loc.eq_owned + "!";
   }
   async function statTemplateMixin() {
-    await WaitForCondition(isReady2, 50);
+    await WaitForCondition(isReady, 50);
     Vue.mixin({
       created() {
         if ("setupStat" in this) this.setupStat = setupStatAlternative;
@@ -1479,6 +1577,7 @@ using \`px\` I know is very bad (especially for consistancy)
       get: () => internalcomp_item
     });
   }
+  var initialLoadCondition2;
   var Extension6 = createExtension({
     uniqueIdentifier: "Grifmin-ui_commas",
     defaultSettings: { enable: false },
@@ -1490,6 +1589,7 @@ using \`px\` I know is very bad (especially for consistancy)
       return [{ type: "Toggle", label: "Enabled", value: this.settings.enable }];
     },
     init: function() {
+      initialLoadCondition2 = this.settings.enable;
       if (!this.settings.enable) return;
       comp_item$ItemPriceOverwrite();
       statTemplateMixin();
@@ -1501,6 +1601,15 @@ using \`px\` I know is very bad (especially for consistancy)
     },
     isEnabled() {
       return true;
+    },
+    /**
+     * I should actually be able to make this hot togglable.
+     * But that would require a bit of extra effort. Plus im unsure if using mixins could cause conflictions with other mods...
+     * 
+     * @todo (Grif) - re visit this at some point. 
+     */
+    requestRefresh() {
+      return initialLoadCondition2 != this.settings.enable;
     }
   });
 
@@ -1528,115 +1637,8 @@ using \`px\` I know is very bad (especially for consistancy)
     });
   }
 
-  // css:C:\Users\Grif\Documents\programs\git\egg_game\src\extensions\TEMPORARY/legacy_gtweaks.css
-  var legacy_gtweaks_default = `/* Ads / Junk they attempt to stuff down our throat */
-.house-ad-wrapper, #respawn-ad-two, #respawn-ad-two, #welcome-bundle-ui, .welcome-bundle-ui {
-	display: none !important;
-}
-img[src="img/eggstra-value-pack.webp"] {
-	/* fuck off */
-	display: none !important;
-}
-/* vip club annoyances */
-.free-games-logo, .vip-club-cta, .free-games-title #chickenBadge {
-	display: none !important;
-}
-/* playerList stuff */
-.playerSlot--nam-score {
-	border-radius: 0.5em;
-}
-.is-paused .pause-ui-element {
-	left: 1em;
-}
-.is-paused .chat-item:first-child.chat-pinned-item {
-	background-color: transparent !important; /* for some reason i have to add this as it sets the background color on the pinned div to blue... */
-}
-
-.chat-container {
-	display: grid;
-	grid-template-rows: 1fr auto;
-	background-color: rgba(0, 0, 0, 0.15) !important;
-	border: 0.0625em solid rgba(0, 0, 0, 0.2) !important;
-	box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.2) !important;
-	border-radius: 0.9375em !important;
-	padding: 0.9375em !important;
-	scroll-behavior: smooth;
-	max-height: 12.25em;
-	/* ^ this allows for a (decent in my opinion) size window (for max size)*/
-}
-#chatOut {
-	scrollbar-color: transparent transparent; 
-	overflow-y: auto;
-	scroll-behavior: smooth;
-	overflow: scroll;
-	mask-image: linear-gradient(
-		to bottom,
-		transparent 0%,
-		black 10%,
-		black 15%,
-		black 25%,
-		black 85%,
-		black 100%
-	);
-	hyphens: auto;
-	overflow-wrap: break-word;
-	/* mask-image: linear-gradient(to bottom, 
-        transparent 0%, 
-        transparent 10%, 
-        black 25%, 
-        black 75%, 
-        transparent 90%, 
-        transparent 100%
-    );
-    -webkit-mask-image: linear-gradient(to bottom, 
-        transparent 0%, 
-        transparent 10%, 
-        black 25%, 
-        black 75%, 
-        transparent 90%, 
-        transparent 100%
-    ); */
-}
-#chatIn {
-	position: sticky;
-	overflow-y: auto;
-	scroll-behavior: smooth;
-	bottom: 0;
-}
-.is-paused #chatIn {
-	width: 100%;
-	left: 1em;
-}
-
-.is-paused .chat-container {
-	display: grid !important; /*stop changing when pausing please*/
-	margin-left: unset;
-	height: auto;
-}
-.is-paused #chatIn {
-	position: sticky;
-}
-/* this places the chat element back inside the div */
-/* Overwritting the defaults */
-.chat-wrapper .pause-ui-element {
-	bottom: var(--ss-space-lg) !important ;
-	background-color: transparent !important;
-	border: none !important;
-	width: 30% !important;
-	height: auto !important;
-}
-.is-paused .pause-ui-element {
-	bottom: var(--ss-space-lg);
-	background-color: transparent;
-	border: none;
-	width: 30%;
-	height: auto !important;
-}
-/*addChat fitled message color*/
-.addChatfiltered {
-	color: red;
-}
-`;
+  // src/extensions/TEMPORARY/legacy_gtweaks.css
+  var legacy_gtweaks_default = '/* Ads / Junk they attempt to stuff down our throat */\n.house-ad-wrapper, #respawn-ad-two, #respawn-ad-two, #welcome-bundle-ui, .welcome-bundle-ui {\n	display: none !important;\n}\nimg[src="img/eggstra-value-pack.webp"] {\n	/* fuck off */\n	display: none !important;\n}\n/* vip club annoyances */\n.free-games-logo, .vip-club-cta, .free-games-title #chickenBadge {\n	display: none !important;\n}\n/* playerList stuff */\n.playerSlot--nam-score {\n	border-radius: 0.5em;\n}\n.is-paused .pause-ui-element {\n	left: 1em;\n}\n.is-paused .chat-item:first-child.chat-pinned-item {\n	background-color: transparent !important; /* for some reason i have to add this as it sets the background color on the pinned div to blue... */\n}\n\n.chat-container {\n	display: grid;\n	grid-template-rows: 1fr auto;\n	background-color: rgba(0, 0, 0, 0.15) !important;\n	border: 0.0625em solid rgba(0, 0, 0, 0.2) !important;\n	box-shadow: 0 0.25em 0.5em rgba(0, 0, 0, 0.2) !important;\n	border-radius: 0.9375em !important;\n	padding: 0.9375em !important;\n	scroll-behavior: smooth;\n	max-height: 12.25em;\n	/* ^ this allows for a (decent in my opinion) size window (for max size)*/\n}\n#chatOut {\n	scrollbar-color: transparent transparent; \n	overflow-y: auto;\n	scroll-behavior: smooth;\n	overflow: scroll;\n	mask-image: linear-gradient(\n		to bottom,\n		transparent 0%,\n		black 10%,\n		black 15%,\n		black 25%,\n		black 85%,\n		black 100%\n	);\n	hyphens: auto;\n	overflow-wrap: break-word;\n	/* mask-image: linear-gradient(to bottom, \n        transparent 0%, \n        transparent 10%, \n        black 25%, \n        black 75%, \n        transparent 90%, \n        transparent 100%\n    );\n    -webkit-mask-image: linear-gradient(to bottom, \n        transparent 0%, \n        transparent 10%, \n        black 25%, \n        black 75%, \n        transparent 90%, \n        transparent 100%\n    ); */\n}\n#chatIn {\n	position: sticky;\n	overflow-y: auto;\n	scroll-behavior: smooth;\n	bottom: 0;\n}\n.is-paused #chatIn {\n	width: 100%;\n	left: 1em;\n}\n\n.is-paused .chat-container {\n	display: grid !important; /*stop changing when pausing please*/\n	margin-left: unset;\n	height: auto;\n}\n.is-paused #chatIn {\n	position: sticky;\n}\n/* this places the chat element back inside the div */\n/* Overwritting the defaults */\n.chat-wrapper .pause-ui-element {\n	bottom: var(--ss-space-lg) !important ;\n	background-color: transparent !important;\n	border: none !important;\n	width: 30% !important;\n	height: auto !important;\n}\n.is-paused .pause-ui-element {\n	bottom: var(--ss-space-lg);\n	background-color: transparent;\n	border: none;\n	width: 30%;\n	height: auto !important;\n}\n/*addChat fitled message color*/\n.addChatfiltered {\n	color: red;\n}\n';
 
   // src/extensions/TEMPORARY/index.ts
   async function setupTemp() {

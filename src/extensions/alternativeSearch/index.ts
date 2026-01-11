@@ -2,12 +2,13 @@
  * Main entry point for modification
  * @author Grifmin
  */
-import { createExtension } from "..";
+import { createExtension } from "../";
 import { debugDebug, debugInfo } from "../logging";
-import aliasesFile from "./aliases.json";
+import AliasesFile from "./aliases.json" with { type: "json" };
 
-const { aliases } = aliasesFile;
+const { aliases } = AliasesFile;
 
+// # Functions
 function searchByNameIncludes(input: string, items: ItemData[], options: Options) {
 	return items.filter((item) => (options.isCaseSensitive ? item.name : item.name.toLowerCase()).includes(input));
 }
@@ -17,7 +18,7 @@ function searchByItemId(input: string, items: ItemData[], options: Options) {
 }
 function searchByMeshNameIncludes(input: string, items: ItemData[], options: Options) {
 	return items.filter((item) =>
-		(options.isCaseSensitive ? item.item_data.meshName : item.item_data.meshName?.toLowerCase())?.includes(input)
+		(options.isCaseSensitive ? item.item_data.meshName : item.item_data.meshName?.toLowerCase())?.includes(input),
 	);
 }
 function searchByAliasesHelper(items: ItemData[], searchFormat: SearchFormat) {
@@ -32,9 +33,7 @@ function searchByAliasesHelper(items: ItemData[], searchFormat: SearchFormat) {
 		returnList = returnList.concat(result);
 	} else if (searchFormat.names) {
 		const { names } = searchFormat;
-		const result = names
-			.map((name) => searchByNameIncludes(name, items, { isCaseSensitive: true } as Options))
-			.flat();
+		const result = names.map((name) => searchByNameIncludes(name, items, { isCaseSensitive: true } as Options)).flat();
 		returnList = returnList.concat(result);
 	}
 	// we want this last
@@ -50,8 +49,8 @@ function searchByAliases(input: string, items: ItemData[], options: Options): It
 	const itemSearchTermPatch = (term: string) => term.replace(/\s/g, ""); // so the input they pass to us, they do this to it first...
 	const keys = Object.keys(aliases).map(itemSearchTermPatch);
 	// this patch is because egg game big stoopid ^
-	if (!keys.some((key) => key.includes(input))) return debugInfo(`${input} not in`, keys), [];
-	const entiresPatch = ([alias, keyword]: [string, Object]) => [itemSearchTermPatch(alias), keyword];
+	if (!keys.some((key) => key.includes(input))) return (debugInfo(`${input} not in`, keys), []);
+	const entiresPatch = ([alias, keyword]: [string, object]) => [itemSearchTermPatch(alias), keyword];
 	const aliasEntries = Object.entries(aliases).map(entiresPatch) as Array<
 		[keyof typeof aliases, (typeof aliases)[keyof typeof aliases]]
 	>;
@@ -66,10 +65,11 @@ function searchByAliases(input: string, items: ItemData[], options: Options): It
 // i should probably improve this function a little bit, but ehh
 function searchByTags_tagIncludes(input: string, items: ItemData[], options: Options) {
 	return items.filter((item) =>
-		item.item_data.tags?.some((tag) => (options.isCaseSensitive ? tag : tag.toLowerCase()).includes(input))
+		item.item_data.tags?.some((tag) => (options.isCaseSensitive ? tag : tag.toLowerCase()).includes(input)),
 	);
 }
-let searchFunctions = [
+
+const searchFunctions = [
 	searchByMeshNameIncludes,
 	searchByNameIncludes,
 	searchByAliases,
@@ -83,6 +83,7 @@ class Foose {
 	constructor(items: ItemData[], options: Options) {
 		Object.assign(this, { items, options });
 	}
+	/** This is the main interface that the Fuse class uses to search with */
 	search(input: string) {
 		input = this.options.isCaseSensitive ? input : input.toLowerCase();
 		// ^ this is to reduce the shorthand if statements in every one of the functions
@@ -91,20 +92,12 @@ class Foose {
 		return Object.entries(items).map(([key, item]) => ({ item }));
 	}
 }
-/*
-// this is just purely for testing purposes
-Object.defineProperty(window, "Fuse", {
-	get() {
-		return Foose;
-	},
-	configurable: true,
-});
-*/
-const description = /**@trim */`
+
+const description = /**@trim */ `
 This extension provides an alternative searching method for the inventory. 
 Completely optional though. 
 Feel free to request improvements for the alternative search extension!
-`;
+`.trim();
 let originalFuse: unknown;
 let state: boolean;
 function redefine() {
@@ -129,16 +122,16 @@ export const Extension = createExtension({
 	init() {
 		originalFuse = (window as any).Fuse;
 		state = this.settings.enabled;
-		redefine(); // we always redefine reguardless. (just as a backup precaution)
+		redefine(); 
+		// ^ we always redefine reguardless. (just as a backup precaution. I've had instances where jsdelivr was blocked / didn't load)
 	},
 	config() {
-		this.settings
 		return [{ type: "Toggle", label: "Enable", value: this.settings.enabled }];
 	},
 	onOptionsChange(updatedstate) {
 		debugDebug(`${this.name} - `, updatedstate, this.settings);
-		if (updatedstate.label == "Enable" && updatedstate.type == 'Toggle') {
-			const newstate = updatedstate.value
+		if (updatedstate.label == "Enable" && updatedstate.type == "Toggle") {
+			const newstate = updatedstate.value;
 			debugDebug(`${this.name} - updating state from ${this.settings.enabled} to ${updatedstate.value}`);
 			this.settings.enabled = newstate;
 			state = newstate; // update current state (thank you)
@@ -150,7 +143,7 @@ export const Extension = createExtension({
 	},
 });
 
-
+// #types
 // type shit (mainly i just want it out of my screens view ngl)
 type SearchFormat = {
 	tags?: string[];
@@ -182,7 +175,7 @@ type Options = {
 	keys: string[];
 	// keys: ["name", "unlock", "item_data.tags","item_data.meshName"]
 };
-type Item = any;
+type Item = TODO;
 type ItemData = {
 	category_name: CategoryNames;
 	exclusive_for_class: ClassTypes;

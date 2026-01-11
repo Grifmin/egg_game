@@ -4,6 +4,7 @@
 			<header class="f_row align-items-center modmenu-title">
 				<section>
 					<h1 class="text-shadow-black-40 text_white nospace">Mods</h1>
+					<h2 v-show="refreshRequested" class="mod-menu-refreshBtn ss_button" @click="location.reload()">Refresh Request</h2>
 				</section>
 			</header>
 			<aside class="'justify-self-end text-right">{{ mods.length }} mods</aside>
@@ -38,7 +39,7 @@
 							<p v-if="selectedMod.version">Version: {{ selectedMod.version}}</p>
 						</div>
 						<aside>
-							<button class="mod-config-button ss_button" @click="configurationSelected()" > {{ configButtonText }} </button>
+							<button v-if="selectedMod.config" class="mod-config-button ss_button" @click="configurationSelected()" > {{ configButtonText }} </button>
 						</aside>
 					</header>
 				</div>

@@ -1,0 +1,23 @@
+{
+	"tasks": {
+		"build": "deno run --allow-env --allow-run --allow-read build/build.ts"
+	},
+	"imports": {
+		"esbuild": "npm:esbuild@^0.27.2",
+		"vue": "npm:vue@2.6.10"
+		// we use 2.6.10 because that is version egg game is using. (although this is just for typehints)
+	},
+	"fmt": {
+		"indentWidth": 4,
+		"useTabs": true
+		// I prefer tabs.
+	},
+	"lint": {
+		"rules": {
+			"exclude": ["no-sloppy-imports", "no-unreachable"]
+			// I like imports like this personally.
+			// its probably not the best practice, but idc.
+		}
+	},
+	"unstable": ["sloppy-imports"]
+}

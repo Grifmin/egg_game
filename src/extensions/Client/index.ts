@@ -3,7 +3,7 @@
  * Hopefully this *mostly* stays the same if not *somewhat* stable?
  * @author Grifmin
  */
-import { Extension } from "..";
+import { Extension } from "../";
 import { ThemeManager, ThemeManagerInterface } from "./theme.js";
 import { css, debugError, debugInfo, debugWarn } from "../logging";
 import defaultcss from "./default.css";

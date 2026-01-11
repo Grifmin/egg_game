@@ -146,12 +146,13 @@ export interface ExtensionInstance<TSettings extends Record<string, any>, TConfi
 		updatedState: TConfig[number] & { label?: string }
 	) => boolean;
 	isEnabled?(this: ExtensionInstance<TSettings, TConfig>): boolean;
+	/**If this is true on one (or any) extension, the window request Refresh button will be applied */
+	requestRefresh?(this: ExtensionInstance<TSettings, TConfig>): boolean;
 	description?: string;
 	name?: string;
 	author?: string;
 	version?: string;
 }
-
 type configOptions = (Toggle | Slider | InputType) & { label?: string };
 type Toggle = { readonly type: "Toggle"; value: boolean };
 type Slider = { readonly type: "Slider"; min: number; max: number; value: number; increment?: number };

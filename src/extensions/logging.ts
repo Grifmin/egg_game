@@ -22,19 +22,19 @@ const { log, warn, error, info, debug } = console;
  * This is just a small wrapper so that i can easily log data when doing debugging
  */
 /**@__PURE__ */
-function debugInfo(message: string, ...other: any) {
+function debugInfo(message: string, ...other: TODO) {
 	info(`%cG-Tweaks: %c${message}`, css.success, "", ...other);
 }
 /**@__PURE__ */
-function debugError(message: string, ...other: any) {
+function debugError(message: string, ...other: TODO) {
 	error(`%cG-Tweaks Error: %c${message}`, css.fail, "", ...other);
 }
 /**@__PURE__ */
-function debugWarn(message: string, ...other: any) {
+function debugWarn(message: string, ...other: TODO) {
 	warn(`%cG-Tweaks Warn: %c${message}`, css.warn, "", ...other);
 }
 /**@__PURE__ */
-function debugDebug(message: string, ...other: any) {
+function debugDebug(message: string, ...other: TODO) {
 	debug(`%cG-Tweaks Debug: %c${message}`, css.warn, "", ...other);
 }
 

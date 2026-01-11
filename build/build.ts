@@ -1,4 +1,3 @@
-// @deno-types="deno.ns"
 import { githubRepoURL, getHeader } from "./header";
 import { htmlPlugin } from "./plugins/html";
 import { trimPlugin } from "./plugins/TRIM";
@@ -19,13 +18,14 @@ async function buildWithInlineSourcemap(minify: boolean = true, inline: boolean 
 		sourcemap: inline ? 'inline' : false,
 		platform: "browser",
 		minify: minify,
+		supported: { 'template-literal': false },
 		banner: { js: header },
 		loader: {
 			".css": "text",
 			".html": "text",
 			".json": "json",
 		},
-		plugins: [cssPlugin, trimPlugin, htmlPlugin], // i was going to attempt at doing slightly more advanced stuff but ehh, later
+		// plugins: [cssPlugin, trimPlugin, htmlPlugin], // i was going to attempt at doing slightly more advanced stuff but ehh, later
 	});
 	ctx.rebuild();
 	ctx.dispose();
@@ -48,6 +48,7 @@ async function buildDefault(minify: boolean = false) {
 		sourcemap: false,
 		platform: "browser",
 		minify: minify,
+		supported: { 'template-literal': minify ? false : true },
 		// banner: { js: minify ? `${header}\n//# sourceURL=${sourceMapURL}` : header },
 		banner: { js: `${header}`},
 		footer: {js: `//# sourceURL=${sourceMapURL}`},
@@ -56,7 +57,7 @@ async function buildDefault(minify: boolean = false) {
 			".html": "text",
 			".json": "json",
 		},
-		plugins: [cssPlugin, htmlPlugin, trimPlugin], // i was going to attempt at doing slightly more advanced stuff but ehh, later
+		// plugins: [cssPlugin, htmlPlugin, trimPlugin], // i was going to attempt at doing slightly more advanced stuff but ehh, later
 	});
 	ctx.rebuild();
 	ctx.dispose();

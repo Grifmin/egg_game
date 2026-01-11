@@ -16,7 +16,7 @@ let ThemeDiv!: HTMLDivElement;
 
 async function getDiv() {
 	if (ThemeDiv) return ThemeDiv;
-	await WaitForCondition(() => document.readyState == 'complete');
+	await WaitForCondition(() => document.readyState == "complete");
 	const div = document.createElement("div");
 	div.id = styleDivIdentifier;
 	document.body.append(div);
@@ -27,16 +27,16 @@ async function getDiv() {
 /**
  * This is just to assist with managing internal css / styles
  * Also makes it quite easy to disable the styles via external extensions (if anyone actually cared to do so)
- * 
+ *
  * Not exactly my best work, but it will do for now
  */
 export const ThemeManager: ThemeManagerInterface = {
 	themes: {},
 	addStyle: async function (styleElement: HTMLStyleElement | string, identifier?: string): Promise<HTMLStyleElement> {
 		// styleElement.id = identifier; // just incase some someone decides to do some shenanigans
-		if (typeof styleElement == 'string') {
+		if (typeof styleElement == "string") {
 			const css = styleElement;
-			styleElement = document.createElement('style');
+			styleElement = document.createElement("style");
 			styleElement.innerHTML = css;
 			if (identifier) styleElement.id = identifier;
 		}
@@ -51,15 +51,12 @@ export const ThemeManager: ThemeManagerInterface = {
 		document.addEventListener(
 			"DOMContentLoaded",
 			() => {
-				getDiv().then(
-					ThemeDiv => {
-						ThemeDiv.append(styleElement);
-						this.themes[identifier] = styleElement;
-
-					}
-				)
+				getDiv().then((ThemeDiv) => {
+					ThemeDiv.append(styleElement);
+					this.themes[identifier] = styleElement;
+				});
 			},
-			{ once: true }
+			{ once: true },
 		);
 		return styleElement;
 	},

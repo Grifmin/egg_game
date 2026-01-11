@@ -32,14 +32,11 @@ const Unsafe = createSourceMod({
 		return source.replace('"', ""); // this should cause some issues
 	},
 });
-/**
- * List of all the mods I have loaded
- */
+
+/** List of all the mods I have loaded */
 export const SourceMods = [Unsafe, Basis, ...otherSourceMods];
 
-/**
- * Adds a source mod to the ModList
- */
+/** Adds a source mod to the ModList */
 export function addMod(sourceMod: SourceMod<any, any>) {
 	SourceMods.push(sourceMod);
 }

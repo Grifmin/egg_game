@@ -3,12 +3,12 @@
  * This is all probably subject to change at any point
  * @author Grifmin
  */
-import { ExtensionInstance, createExtension } from "..";
+import { ExtensionInstance, createExtension } from "../";
 import { Client } from "../Client";
 import { WaitForCondition } from "../Client/Utilities";
 import { debugDebug, debugError, debugInfo } from "../logging";
 import CSS from "./modmenu.css";
-import modmenu_item_template from "./modmenu_item_template.html";
+// import modmenu_item_template from "./modmenu_item_template.html";
 import modmenu_screen_template from "./modmenu_screen_template.html";
 
 const modMenuScreenIndex = 5; // the screen index
@@ -23,11 +23,6 @@ function switchToModMenuUi(this: vueAppContext) {
 	BAWK.play("ui_toggletab");
 	this.gameUiRemoveClassForNoScroll();
 	extern.resetPaperDoll();
-}
-
-function isReady(): boolean {
-	if (!("vueApp" in window) || !("Vue" in window)) return false;
-	return [Vue, Client.readyState, vueApp].every((value) => value) ;
 }
 
 /**This function conditionally updates the vueApp if needed */
@@ -48,7 +43,10 @@ function updateVueApp() {
 }
 
 async function WaitUntilSetup() {
-	// await ClientReady(); // once the client is ready, we will mount the mod menu.
+	function isReady(): boolean {
+		if (!("vueApp" in window) || !("Vue" in window)) return false;
+		return [Vue, Client.readyState, vueApp].every((value) => value);
+	}
 	await WaitForCondition(isReady).catch((reason) => debugError(`ModMenu isReady - ${reason}`));
 	if (Client.vue) return debugInfo(`It seems the Mod Menu Vue instance is already mounted. `);
 	// const cssDiv = document.createElement(`style`);
@@ -99,6 +97,16 @@ async function WaitUntilSetup() {
 				selectedMod: extensions.find((ext) => ext.name == ModMenuName),
 				configuration: false,
 				mods: extensions,
+				refreshDetected: () => {
+					function ModRequestedRefresh(mod: ExtensionInstance<any, any>): boolean {
+						if (mod.requestRefresh && mod.requestRefresh()) {
+							return true;
+						}
+						return false;
+					}
+					// theoretically this *should* work. but it doesnt. (big sadge)
+					return extensions.some(ModRequestedRefresh);
+				},
 			};
 		},
 		/**
@@ -109,7 +117,15 @@ async function WaitUntilSetup() {
 		computed: {
 			/**@todo */
 			refreshRequested(): boolean {
-				return false;
+				// function ModRequestedRefresh(mod: ExtensionInstance<any, any>): boolean {
+				// 	if (mod.requestRefresh && mod.requestRefresh()) {
+				// 		return true
+				// 	}
+				// 	return false;
+				// }
+				// // theoretically this *should* work. but it doesnt. (big sadge)
+				// return this.mods.some(ModRequestedRefresh);
+				return this.refreshDetected();
 			},
 			/**this is to let it know when it should be displayed */
 			shouldDisplay(): boolean {
@@ -136,6 +152,7 @@ async function WaitUntilSetup() {
 		methods: {
 			selectMod(mod: ExtensionInstance<any, any>): void {
 				this.selectedMod = mod;
+				mod.description = mod.description?.trim(); // i keep forgetting to trim some of my descriptions.
 				this.configuration = false; // reset back to desciption screen.
 			},
 			configurationSelected(): void {
@@ -181,16 +198,14 @@ const ModMenuExtension = createExtension({
 	name: ModMenuName,
 	author: "Grifmin",
 	version: "0.3a",
-	description: "mod menu v2 implementation\nWork in progress",
+	description: /**@trim */ `
+	mod menu v2 implementation
+	Work in progress`.trim(),
 	iconUrl: "url('https://media1.tenor.com/m/77rqMj3uomoAAAAd/gritito.gif)", // this is how i felt making this btw.
-	defaultSettings: {}, // no settings (this wont be togglable)
-	init: WaitUntilSetup,
-	config() {
-		return [
-			{ type: "Toggle", label: "Test 1", value: true },
-			{ type: "Toggle", label: "Test 2", value: false },
-			{ type: "Slider", label: "Test slider", max: 100, min: 0, value: 50 },
-		];
+	defaultSettings: { enabled: true }, // made this togglable via a manual entry. (incase some other mod comes up with a better mod menu or has some reason to hide this idk)
+	init() {
+		if (!this.settings.enabled) return;
+		WaitUntilSetup();
 	},
 	onOptionsChange(updateState) {
 		debugDebug(`${this.name} - ${this.onOptionsChange?.name}: `, updateState);
@@ -199,21 +214,13 @@ const ModMenuExtension = createExtension({
 });
 
 export { ModMenuExtension as Extension };
-/*
-// this is test for the mod menu (to see if it supports hot loading or not)
-Client.extensions.push({
-	name: "live ext",
-	author: "console debugger",
-	description: "virtual mod added by console debugger",
-})
-*/
 
 /**this is just to shut ts up, i know its there */
 interface vueAppContext {
-	showScreen: any;
-	$refs: any;
-	equip: any;
+	showScreen: TODO;
+	$refs: TODO;
+	equip: TODO;
 	hideGameMenu(): unknown;
 	gameUiRemoveClassForNoScroll(): unknown;
-	screens: any;
+	screens: TODO;
 }

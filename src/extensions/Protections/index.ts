@@ -7,7 +7,7 @@
  * Ehh, this works for now.
  * @author Grifmin
  */
-import { createExtension } from "..";
+import { createExtension } from "../";
 import { debugWarn } from "../logging";
 
 /**
@@ -64,8 +64,11 @@ function Protect() {
 		throw err;
 	}
 }
-const description =
-/**@trim */`Protects various js Object prototypes. (useful when attempting to mitigate egg games various anti modding approaches)`.trim();
+let initialLoadCondition!: boolean;
+const description =/**@trim */`
+Protects various js Object prototypes. (useful when attempting to mitigate egg games various anti modding approaches)
+This could cause some incompatibility with other mods. (as it attempts to protect internal variables)
+`.trim();
 export const Extension = createExtension({
 	uniqueIdentifier: `Grifmin-Protec`,
 	defaultSettings: { enabled: true },
@@ -77,6 +80,7 @@ export const Extension = createExtension({
 		return [{ type: "Toggle", label: "Enable", value: this.settings.enabled }];
 	},
 	init() {
+		initialLoadCondition = this.settings.enabled;
 		if (!this.settings.enabled) return;
 		Protect();
 	},
@@ -84,10 +88,14 @@ export const Extension = createExtension({
 		if (updatedState.type != "Toggle") return false; // erm what
 		this.settings.enabled = updatedState.value;
 		/**@todo (Grif) - now we need a way to request window refresh*/
-		debugWarn(`${this.name} - window refresh request. - Grif fix this you lazy bastard.`);
+		// debugWarn(`${this.name} - window refresh request. - Grif fix this you lazy bastard.`);
+		// refresh window condition should just *magically* work now. 
 		return updatedState.value;
 	},
 	isEnabled(): boolean {
 		return this.settings.enabled;
+	},
+	requestRefresh() {
+		return initialLoadCondition != this.settings.enabled;
 	},
 });

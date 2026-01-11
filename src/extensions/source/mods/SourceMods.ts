@@ -97,8 +97,10 @@ export const ExcessiveLogsPatch = createSourceMod({
 
 export const addChatRewrite = createSourceMod({
 	name: "addChat rewrite",
-	description:
-		"a re written version of the addChat function.\nDisplay filtered messages, patches potential RCE bug (yes i reported it back in 1.15.2024)",
+	description: /**@trim */`
+	a re written version of the addChat function.
+	Display filtered messages, patches potential RCE bug (yes i reported it back in 1.15.2024)
+	`,
 	version: "10.31.25",
 	modify: function (source: string): string {
 		`function ([\\w$_]+)\\((?:(?:[\\w$_]+),?){5}\\){const [\\w$_]+=[\\w$_]+\\.querySelectorAll\\("\\.chat-item`;
@@ -407,9 +409,9 @@ export const onChatKeyDownRewrite = createSourceMod({
 			}
 			/*we defer a function to run nearly instantly after the function just incase we hit "enter" or something else happens idk */
 			setTimeout(() => {
-				${chatInEl}.style.color = ${isBadWord}(${chatInEl}.value) ? 'red' : '';
-					// .classList.add('addChatfiltered') 
-					// ^ concept ?
+				/*${chatInEl}.style.color = ${isBadWord}(${chatInEl}.value) ? 'red' : '';*/
+				${chatInEl}.classList[ ${isBadWord}(${chatInEl}) ? 'add' : 'remove' ]('addChatfiltered');
+				// i decided i'd use the classList so that others can intercept / overwrite my theme stuff. idk
 			}, 1);
 			${chatInEl}.style.color = ${isBadWord}(text) ? 'red' : '';
 		}`.trim();

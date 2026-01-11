@@ -6,7 +6,7 @@
 import { PatternMatchFailed } from "../Client/Utilities";
 import { createSourceMod } from "../source/loader";
 import { addMod } from "../source/mods";
-import { createExtension } from "..";
+import { createExtension } from "../";
 
 // # variables
 let internal_SCB: settings_control_binder;
@@ -83,7 +83,8 @@ function updateVueComp() {
 		get: () => internal_SCB,
 	});
 }
-
+// this is just for me to mark my original load settings (to compare to for later)
+let originalSettings!: TODO;
 // extension part
 export const Extension = createExtension({
 	uniqueIdentifier: "Grifmin-Tabkeyremap",
@@ -96,6 +97,7 @@ export const Extension = createExtension({
 		return [{ type: "Toggle", label: Label, value: this.settings.enabled }];
 	},
 	init() {
+		originalSettings = JSON.parse(JSON.stringify(this.settings)); // not exactly pretty, but will do. 
 		if (!this.settings.enabled) return;
 		addMod(SourceMod);
 		updateVueComp();
@@ -104,12 +106,17 @@ export const Extension = createExtension({
 	onOptionsChange(updatedState) {
 		if (updatedState.type != "Toggle" || updatedState.label != Label) return false;
 		this.settings.enabled = updatedState.value;
-		// we need to request window refresh for this aswell, because i dont feel like using global variables to communicate with variables inside of egg game.
+		
 		return true;
 	},
 	isEnabled() {
 		return this.settings.enabled;
 	},
+	requestRefresh() {
+		// not exactly the prettiest, but should work for now. ish
+		const condition = (originalSettings as typeof this.settings).enabled != this.settings.enabled;
+		return condition
+	}
 });
 
 /**
