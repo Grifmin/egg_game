@@ -943,7 +943,7 @@ Toggling mods not implemented as of yet. (as i cbf)
       ApplySourceInterception();
     },
     onOptionsChange(updatedState) {
-      if (updatedState.type != "Toggle") return false;
+      if (updatedState.type != "Toggle") return;
       if (updatedState.label == baseLabel) {
         this.settings.enabled = updatedState.value;
         return;
@@ -955,7 +955,6 @@ Toggling mods not implemented as of yet. (as i cbf)
       }
       const newState = this.settings.modStates;
       if (newState[modName] == void 0) {
-        debugDebug(`updating patch for newState of SourceMods for ${modName}`);
         newState[modName] = true;
         initialModSettings.modStates[modName] = true;
       }
@@ -970,9 +969,7 @@ Toggling mods not implemented as of yet. (as i cbf)
       const enabledStateMatches = this.settings.enabled == initialModSettings.enabled;
       const initialModStates = initialModSettings.modStates;
       const modStatesMatch = Object.entries(this.settings.modStates).every(([key, value]) => initialModStates[key] == value);
-      const refreshCondition = !enabledStateMatches || !modStatesMatch;
-      debugDebug(`${this.name} - refreshCondition: ${refreshCondition}`);
-      return refreshCondition;
+      return !enabledStateMatches || !modStatesMatch;
     }
   });
 
@@ -1268,10 +1265,6 @@ This could cause some incompatibility with other mods. (as it attempts to protec
               }
               return false;
             }
-            extensions.forEach((ext) => {
-              const refreshDetected = ModRequestedRefresh(ext);
-              debugDebug(`ModMenuScreen - refreshDetected: ${refreshDetected} - ${ext.name}`);
-            });
             return extensions.some(ModRequestedRefresh);
           }
         };
@@ -1285,7 +1278,6 @@ This could cause some incompatibility with other mods. (as it attempts to protec
         /**@todo */
         refreshRequested() {
           return this.refreshWanted;
-          return this.refreshDetected();
         },
         /**this is to let it know when it should be displayed */
         shouldDisplay() {
@@ -1323,9 +1315,7 @@ This could cause some incompatibility with other mods. (as it attempts to protec
         onOptionsChange(option, idx) {
           if (!(this.selectedMod && this.selectedMod.onOptionsChange)) return;
           this.selectedMod.onOptionsChange(option);
-          this.$forceUpdate();
           this.refreshWanted = this.refreshDetected();
-          debugDebug(`modmenu onOptionsChange `);
         }
       }
     });
